@@ -161,7 +161,7 @@ def main() -> None:
     start = len(y) - horizon - 1
 
     y_true_segment = y[start + 1 : start + 1 + horizon]
-    u_segment = u_obs[start - 1 : start - 1 + horizon + ls_model.nb - 1]  # length horizon + nb - 1
+    u_segment = u_obs[start - 1 : start - 1 + horizon + 2]  # length horizon + nb
     y_init = y[start - 1 : start + 1]  # length na
 
     # One-step-ahead uses true history each step.
@@ -179,7 +179,6 @@ def main() -> None:
     bayes_recursive = _recursive_rollout_bayes_mean(bayes_model, y_init=y_init, u_future=u_segment)
 
     t_axis = np.arange(1, horizon + 1)
-    assert len(ls_recursive) == horizon and len(bayes_recursive) == horizon
     plt.figure(figsize=(9, 5))
     plt.plot(t_axis, y_true_segment, color="black", linewidth=2, label="Observed trajectory")
     plt.plot(t_axis, ls_one_step, color="tab:orange", linestyle="--", label="LS one-step-ahead")
