@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+src/bayes_sysid/__init__.py
+src/bayes_sysid/arx.py
+src/bayes_sysid/simulate.py
+src/bayesian_arx_sysid.egg-info/PKG-INFO
+src/bayesian_arx_sysid.egg-info/SOURCES.txt
+src/bayesian_arx_sysid.egg-info/dependency_links.txt
+src/bayesian_arx_sysid.egg-info/requires.txt
+src/bayesian_arx_sysid.egg-info/top_level.txt
+tests/test_arx.py
