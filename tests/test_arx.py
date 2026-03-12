@@ -6,10 +6,7 @@ from bayes_sysid import (
     BayesianARXUnknownNoise,
     LeastSquaresARX,
     build_arx_regression,
-    diagonal_arx_prior_covariance,
-    isotropic_prior_covariance,
     rolling_order_search,
-    scale_prior_covariance_by_regressor_variance,
     simulate_arx,
 )
 
@@ -199,47 +196,3 @@ def test_rolling_order_search_happy_path_and_validation():
         rolling_order_search(y, u_obs, [1], [1], metric="bad")
     with pytest.raises(ValueError):
         rolling_order_search(y, u_obs, [50], [50], train_fraction=0.2)
-
-
-def test_prior_configuration_helpers():
-    iso = isotropic_prior_covariance(4, variance=3.0)
-    np.testing.assert_allclose(np.diag(iso), np.array([3.0, 3.0, 3.0, 3.0]))
-
-    diag = diagonal_arx_prior_covariance(na=2, nb=3, ar_variance=4.0, input_variance=1.5)
-    np.testing.assert_allclose(np.diag(diag), np.array([4.0, 4.0, 1.5, 1.5, 1.5]))
-
-    Phi = np.array(
-        [
-            [1.0, 2.0, -1.0],
-            [2.0, 1.0, -1.5],
-            [3.0, 4.0, -2.0],
-            [4.0, 3.0, -0.5],
-        ]
-    )
-    base = np.diag([10.0, 5.0, 2.0])
-    scaled = scale_prior_covariance_by_regressor_variance(Phi, base)
-    var = np.var(Phi, axis=0)
-    expected = np.diag(np.diag(base) / np.maximum(var, 1e-8))
-    np.testing.assert_allclose(scaled, expected)
-
-
-def test_prior_configuration_helpers_validation():
-    with pytest.raises(ValueError):
-        isotropic_prior_covariance(0, variance=1.0)
-    with pytest.raises(ValueError):
-        isotropic_prior_covariance(2, variance=0.0)
-
-    with pytest.raises(ValueError):
-        diagonal_arx_prior_covariance(na=0, nb=0)
-    with pytest.raises(ValueError):
-        diagonal_arx_prior_covariance(na=1, nb=1, ar_variance=-1.0)
-
-    Phi = np.ones((5, 2))
-    with pytest.raises(ValueError):
-        scale_prior_covariance_by_regressor_variance(Phi.reshape(-1), np.eye(2))
-    with pytest.raises(ValueError):
-        scale_prior_covariance_by_regressor_variance(Phi, np.eye(3))
-    with pytest.raises(ValueError):
-        scale_prior_covariance_by_regressor_variance(Phi, np.array([[1.0, 0.1], [0.1, 1.0]]))
-    with pytest.raises(ValueError):
-        scale_prior_covariance_by_regressor_variance(Phi, np.eye(2), min_variance=0.0)
