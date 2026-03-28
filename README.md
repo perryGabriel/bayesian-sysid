@@ -17,39 +17,39 @@ This is the Bayesian analogue of least-squares ARX identification.
 
 For orders `na` and `nb`, we use
 
-\[
+$$
 y_t = \phi_t^\top \theta + e_t, \qquad e_t \sim \mathcal N(0, \sigma^2)
-\]
+$$
 
 with regressor
 
-\[
+$$
 \phi_t = [y_{t-1},\dots,y_{t-na},u_{t-1},\dots,u_{t-nb}]^\top.
-\]
+$$
 
 The prior is
 
-\[
+$$
 \theta \sim \mathcal N(\mu_0, \Sigma_0).
-\]
+$$
 
 Given data, the posterior is Gaussian:
 
-\[
+$$
 \Sigma_N^{-1} = \Sigma_0^{-1} + \frac{1}{\sigma^2} \Phi^\top \Phi,
 \qquad
 \mu_N = \Sigma_N\left(\Sigma_0^{-1}\mu_0 + \frac{1}{\sigma^2}\Phi^\top y\right).
-\]
+$$
 
 For a new regressor `phi_*`, the posterior predictive distribution is
 
-\[
+$$
 y_* \mid \mathcal D, \phi_* \sim
 \mathcal N\left(
 \phi_*^\top \mu_N,
 \phi_*^\top \Sigma_N \phi_* + \sigma^2
 \right).
-\]
+$$
 
 That predictive variance contains both:
 
