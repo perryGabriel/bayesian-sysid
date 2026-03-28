@@ -67,10 +67,28 @@ bayesian_arx_repo/
 ├── src/
 │   └── bayes_sysid/
 │       ├── __init__.py
-│       ├── arx.py
-│       └── simulate.py
+│       ├── arx.py          # backward-compatible facade
+│       ├── regression.py   # ARX regressor construction
+│       ├── models.py       # LS/Bayesian ARX estimators
+│       ├── selection.py    # rolling order search
+│       ├── priors.py       # prior helper utilities
+│       ├── metrics.py
+│       ├── simulate.py
+│       ├── analysis/
+│       │   ├── stability.py
+│       │   └── frequency_response.py
+│       └── control/
+│           ├── closed_loop.py
+│           └── margins.py
 └── tests/
-    └── test_arx.py
+    ├── test_arx.py
+    ├── test_metrics.py
+    ├── test_simulate.py
+    ├── test_api_structure.py
+    ├── test_stability_analysis.py
+    ├── test_frequency_response.py
+    ├── test_closed_loop_control.py
+    └── test_robust_margins.py
 ```
 
 ## Installation
@@ -87,19 +105,34 @@ Or install dependencies manually:
 pip install numpy scipy matplotlib
 ```
 
-## Quick demo
+## Quick demos
 
 ```bash
 python examples/demo_arx.py
+python examples/demo_stability_and_robustness.py
 ```
 
-This demo will:
+`demo_arx.py` focuses on identification/prediction comparisons.
 
-- simulate data from a stable ARX process,
-- fit both least-squares and Bayesian ARX models,
-- compare one-step predictions,
-- plot the posterior predictive density for the next output,
-- plot Monte Carlo trajectory bands from posterior samples.
+`demo_stability_and_robustness.py` adds controls-oriented outputs:
+
+- posterior stability probability and pole-cloud visualization,
+- posterior frequency-response uncertainty envelope,
+- nominal + empirical robust margin summary,
+- closed-loop Monte Carlo response bands under posterior uncertainty.
+
+
+## Current capabilities
+
+In addition to Bayesian/LS ARX fitting, the repo now includes:
+
+- unknown-noise Bayesian ARX (`BayesianARXUnknownNoise`) with Student-t predictive distributions,
+- prior helper utilities (isotropic, AR-vs-input diagonal, regressor-variance scaling),
+- rolling-origin ARX order search,
+- analysis tools for ARX stability and posterior stability probability,
+- posterior frequency-response sampling and uncertainty envelopes,
+- closed-loop Monte Carlo simulation with static/PID controllers,
+- preliminary gain/phase margin summaries (nominal + empirical posterior).
 
 ## Main class
 
@@ -115,10 +148,12 @@ print(mean, var)
 
 ## Notes
 
-This repo is intentionally small and pedagogical. Natural extensions include:
+This repo is intentionally pedagogical, but now includes a first controls-analysis stack
+(stability/frequency/closed-loop/margins) on top of Bayesian ARX.
 
-- unknown noise variance with inverse-gamma prior,
-- full MIMO/state-space Bayesian identification,
-- stability-constrained priors,
-- Bayesian model order selection,
-- impulse-response priors / Gaussian-process system identification.
+Natural next extensions include:
+
+- explicit state-space realization and LQR/LQG/observer pipelines,
+- structured robustness analysis with richer uncertainty blocks,
+- MIMO identification and dynamical structure function reconstruction,
+- online/sequential Bayesian updates and adaptive control loops.
