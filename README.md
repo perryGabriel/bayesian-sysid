@@ -41,7 +41,7 @@ $$
 \mu_N = \Sigma_N\left(\Sigma_0^{-1}\mu_0 + \frac{1}{\sigma^2}\Phi^\top y\right).
 $$
 
-For a new regressor `phi_*`, the posterior predictive distribution is
+For a new regressor $phi_*$, the posterior predictive distribution is
 
 $$
 y_* \mid \mathcal D, \phi_* \sim
