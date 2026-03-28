@@ -31,15 +31,7 @@ single-input single-output (SISO) ARX models.
     and visualize predictive density + trajectory uncertainty bands.
 
 - **Tests**
-  - Broad unit-test coverage now spans regression construction, Bayesian/LS APIs, unknown-noise model behavior,
-    prior helpers, simulation checks, API compatibility checks, stability/frequency analysis, closed-loop utilities,
-    and preliminary margin tools.
-
-- **Controls analysis add-ons (first draft implemented)**
-  - Stability utilities with posterior stability probability.
-  - Posterior frequency-response envelopes.
-  - Closed-loop Monte Carlo under static/PID feedback.
-  - Preliminary nominal/empirical gain/phase margin summaries.
+  - Smoke tests verify model fit/output shapes and positive predictive variance.
 
 ### Packaging and usability status
 
@@ -49,11 +41,13 @@ single-input single-output (SISO) ARX models.
 
 ## Gaps and limitations
 
-1. **Only SISO ARX**: no multi-input/multi-output support yet.
-2. **No explicit state-space bridge** for full observer/LQG workflows.
-3. **Robust margins are preliminary** (classical approximations; no full structured \(M-\Delta\) pipeline).
-4. **No online/sequential updates**: fitting remains batch-only.
-5. **No constrained/stability-enforcing priors** yet (only unconstrained priors and posterior diagnostics).
+1. **Noise model is fixed**: `sigma2` must be known a priori.
+2. **Only SISO ARX**: no multi-input/multi-output support.
+3. **No model order selection**: users must manually pick `na`, `nb`.
+4. **No online/sequential updates**: fitting is batch-only.
+5. **Limited diagnostics**: no residual analysis, uncertainty calibration checks, or fit metrics.
+6. **No constrained/stability-aware priors**.
+7. **Minimal test coverage** beyond basic sanity checks.
 
 ## Expansion roadmap
 
@@ -104,13 +98,11 @@ single-input single-output (SISO) ARX models.
 - Optional robust likelihoods (e.g., Student-t noise) for outlier resilience.
 - Export/persistence helpers and reproducible experiment configs.
 
-## Status update
+## Recommended immediate next tasks
 
-The original immediate tasks from this plan are now implemented:
+1. Implement a test expansion (Phase 1) and target ~90% line coverage for `arx.py`.
+2. Add a `metrics.py` module and integrate it into `examples/demo_arx.py` output.
+3. Add Normal-Inverse-Gamma support behind a new class (`BayesianARXUnknownNoise`).
+4. Add an order-selection utility with rolling validation.
 
-1. Test expansion with broad functionality coverage.
-2. Metrics module and demo integration.
-3. Normal-Inverse-Gamma unknown-noise Bayesian ARX.
-4. Rolling order-selection utility.
-
-Additionally, first-draft controls add-ons (stability/frequency/closed-loop/margins) have been added.
+These four tasks preserve the current pedagogical style while materially improving practical utility.

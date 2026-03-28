@@ -161,7 +161,7 @@ def main() -> None:
     start = len(y) - horizon - 1
 
     y_true_segment = y[start + 1 : start + 1 + horizon]
-    u_segment = u_obs[start - 1 : start - 1 + horizon + ls_model.nb - 1]  # length horizon + nb - 1
+    u_segment = u_obs[start - 1 : start - 1 + horizon + 2]  # length horizon + nb
     y_init = y[start - 1 : start + 1]  # length na
 
     # One-step-ahead uses true history each step.
@@ -178,28 +178,13 @@ def main() -> None:
     ls_recursive = ls_model.simulate_one_step_rollout(y_init=y_init, u=u_segment)
     bayes_recursive = _recursive_rollout_bayes_mean(bayes_model, y_init=y_init, u_future=u_segment)
 
-    # Defensive alignment so plotting never fails if any series length drifts.
-    aligned_horizon = min(
-        horizon,
-        len(y_true_segment),
-        len(ls_one_step),
-        len(bayes_one_step),
-        len(ls_recursive),
-        len(bayes_recursive),
-    )
-    t_axis = np.arange(1, aligned_horizon + 1)
-    y_true_segment = y_true_segment[:aligned_horizon]
-    ls_one_step = ls_one_step[:aligned_horizon]
-    bayes_one_step = bayes_one_step[:aligned_horizon]
-    ls_recursive = ls_recursive[:aligned_horizon]
-    bayes_recursive = bayes_recursive[:aligned_horizon]
-
+    t_axis = np.arange(1, horizon + 1)
     plt.figure(figsize=(9, 5))
     plt.plot(t_axis, y_true_segment, color="black", linewidth=2, label="Observed trajectory")
     plt.plot(t_axis, ls_one_step, color="tab:orange", linestyle="--", label="LS one-step-ahead")
-    plt.plot(t_axis, ls_recursive, color="tab:orange", linestyle="-", alpha=0.6, label="LS recursive")
-    plt.plot(t_axis, bayes_one_step, color="tab:blue", linestyle="--", label="Bayes one-step-ahead")
-    plt.plot(t_axis, bayes_recursive, color="tab:blue", linestyle="-", alpha=0.7, label="Bayes recursive")
+    plt.plot(t_axis, ls_recursive[:len(t_axis)], color="tab:orange", linestyle="-", alpha=0.6, label="LS recursive")
+    plt.plot(t_axis, bayes_one_step, color="tab:blue", linestyle=":", label="Bayes one-step-ahead")
+    plt.plot(t_axis, bayes_recursive[:len(t_axis)], color="tab:blue", linestyle="-.", alpha=0.7, label="Bayes recursive")
     plt.title("One-step-ahead (teacher forcing) vs recursive (free-run) predictions")
     plt.xlabel("prediction step")
     plt.ylabel("output")
@@ -218,14 +203,14 @@ def main() -> None:
         include_process_noise=True,
         random_state=10,
     )
-    q10 = np.quantile(paths, 0.10, axis=0)[:aligned_horizon]
-    q50 = np.quantile(paths, 0.50, axis=0)[:aligned_horizon]
-    q90 = np.quantile(paths, 0.90, axis=0)[:aligned_horizon]
+    q10 = np.quantile(paths, 0.10, axis=0)
+    q50 = np.quantile(paths, 0.50, axis=0)
+    q90 = np.quantile(paths, 0.90, axis=0)
 
     plt.figure(figsize=(8, 4.5))
-    plt.fill_between(t_axis, q10, q90, alpha=0.3, label="10%-90% posterior band")
-    plt.plot(t_axis, q50, label="Posterior median trajectory")
-    plt.plot(t_axis, y_true_segment, color="black", linewidth=1.5, label="Observed trajectory")
+    plt.fill_between(t_axis, q10[:len(t_axis)], q90[:len(t_axis)], alpha=0.3, label="10%-90% posterior band")
+    plt.plot(t_axis, q50[:len(t_axis)], label="Posterior median trajectory")
+    plt.plot(t_axis, y_true_segment, color="black", linestyle="--",linewidth=1.5, label="Observed trajectory")
     plt.title("Posterior trajectory uncertainty (free-run)")
     plt.xlabel("prediction step")
     plt.ylabel("output")
