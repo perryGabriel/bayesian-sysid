@@ -41,20 +41,20 @@ $$
 \mu_N = \Sigma_N\left(\Sigma_0^{-1}\mu_0 + \frac{1}{\sigma^2}\Phi^\top y\right).
 $$
 
-For a new regressor $phi_*$, the posterior predictive distribution is
+For a new regressor $\phi_{*}$, the posterior predictive distribution is
 
 $$
-y_* \mid \mathcal D, \phi_* \sim
+y_{\ast} \mid \mathcal D, \phi_{\ast} \sim
 \mathcal N\left(
-\phi_*^\top \mu_N,
-\phi_*^\top \Sigma_N \phi_* + \sigma^2
+\phi_{\ast}^{\top} \mu_N,
+\phi_{\ast}^{\top} \Sigma_N \phi_{\ast} + \sigma^2
 \right).
 $$
 
 That predictive variance contains both:
 
-- **noise variance** `sigma2`, and
-- **parameter uncertainty** `phi_*^T Sigma_N phi_*`.
+- **noise variance** $\sigma_2$, and
+- **parameter uncertainty** $\phi_{\ast}^T \sum_N \phi_{*}$.
 
 ## Repo structure
 
