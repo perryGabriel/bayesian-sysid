@@ -17,7 +17,7 @@ This document answers:
 
 Implemented as first drafts:
 
-- `analysis/stability.py`: `arx_poles`, `is_stable_discrete`, `posterior_stability_probability`.
+- `analysis/stability.py`: `arx_poles`, `is_stable(domain=...)`, `posterior_stability_probability(domain=...)`.
 - `analysis/frequency_response.py`: ARX frequency response + posterior uncertainty envelopes.
 - `control/closed_loop.py`: closed-loop simulation + posterior Monte Carlo under static/PID feedback.
 - `control/margins.py`: preliminary classical margin extraction + empirical posterior summaries.
@@ -47,6 +47,9 @@ A(z^{-1}) = 1 + a_1 z^{-1}+\cdots+a_{n_a}z^{-n_a}.
 Discrete-time stability can be tested directly by checking if poles of
 \(A(z^{-1})^{-1}\) lie strictly inside the unit disk.
 
+For continuous-time analyses, stability is based on pole real parts:
+\(\Re(s) < -\text{tol}\) after mapping discrete ARX poles to a continuous approximation.
+
 With Bayesian posteriors, this can become a **probabilistic stability** statement:
 - sample \(\theta\) from posterior,
 - compute poles per sample,
@@ -56,9 +59,9 @@ This is immediately useful and interpretable for controls users.
 
 ### Minimal implementation steps
 
-- Add utility: `arx_poles(theta, na)` and `is_stable_discrete(poles)`.
-- Add Bayesian stability probability: `posterior_stability_probability(n_samples=...)`.
-- Add plots: pole cloud in complex plane + unit circle + posterior stability histogram.
+- Add utility: `arx_poles(theta, na)`, `arx_poles_by_domain(...)`, and `is_stable(poles, domain=...)`.
+- Add Bayesian stability probability: `posterior_stability_probability(..., domain=...)`.
+- Add plots: pole cloud in complex plane + a domain-appropriate boundary (unit circle for discrete-time).
 
 ### Novel angle
 

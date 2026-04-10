@@ -134,6 +134,12 @@ In addition to Bayesian/LS ARX fitting, the repo now includes:
 - closed-loop Monte Carlo simulation with static/PID controllers,
 - preliminary gain/phase margin summaries (nominal + empirical posterior).
 
+Stability checks support two explicit conventions:
+
+- `domain="discrete"` (default): stable iff every pole satisfies `|z| < 1 - tol`.
+- `domain="continuous"`: stable iff every pole satisfies `Re(s) < -tol` (requires
+  continuous-time pole conversion support).
+
 ## Main class
 
 ```python

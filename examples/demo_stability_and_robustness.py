@@ -30,8 +30,14 @@ def main() -> None:
     u_obs = u[2:]
 
     model = BayesianARX(na=2, nb=2, sigma2=sigma**2).fit(y, u_obs)
+    stability_domain = "discrete"
 
-    p_stable = posterior_stability_probability(model, n_samples=1000, random_state=0)
+    p_stable = posterior_stability_probability(
+        model,
+        n_samples=1000,
+        random_state=0,
+        domain=stability_domain,
+    )
     print(f"Posterior stability probability: {p_stable:.3f}")
 
     theta_samples = model.sample_parameters(300, random_state=1)
@@ -39,10 +45,11 @@ def main() -> None:
 
     plt.figure(figsize=(5, 5))
     th = np.linspace(0, 2 * np.pi, 400)
-    plt.plot(np.cos(th), np.sin(th), "k--", label="unit circle")
+    if stability_domain == "discrete":
+        plt.plot(np.cos(th), np.sin(th), "k--", label="|z| = 1")
     plt.scatter(poles.real.flatten(), poles.imag.flatten(), s=8, alpha=0.4, label="posterior poles")
     plt.gca().set_aspect("equal", adjustable="box")
-    plt.title("Posterior pole cloud")
+    plt.title(f"Posterior pole cloud ({stability_domain} domain)")
     plt.xlabel("Re")
     plt.ylabel("Im")
     plt.legend()
