@@ -14,6 +14,7 @@ from bayes_sysid.analysis.frequency_response import (
 from bayes_sysid.analysis.stability import arx_poles, posterior_stability_probability
 from bayes_sysid.control.closed_loop import monte_carlo_closed_loop_paths
 from bayes_sysid.control.margins import classical_margins_from_open_loop, empirical_margin_report
+from bayes_sysid.control.tuning import tune_controller_probabilistic
 
 
 def main() -> None:
@@ -81,6 +82,22 @@ def main() -> None:
     print("Empirical margin summary:", empirical)
 
     r = np.ones(120)
+
+    tuning_report = tune_controller_probabilistic(
+        model=model,
+        r=r,
+        controller="pid",
+        param_bounds={"kp": (0.0, 2.0), "ki": (0.0, 0.4), "kd": (0.0, 0.3)},
+        n_iterations=60,
+        n_parameter_samples=120,
+        output_bound=4.0,
+        input_bound=3.0,
+        robustness_delta=0.25,
+        include_process_noise=True,
+        random_state=8,
+    )
+    print("Tuning report:", tuning_report)
+
     y_paths, _ = monte_carlo_closed_loop_paths(
         model,
         r,
