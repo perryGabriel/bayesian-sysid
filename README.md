@@ -112,6 +112,12 @@ python examples/demo_arx.py
 python examples/demo_stability_and_robustness.py
 ```
 
+For uncertainty demos in undersampled / low-data regimes, open:
+
+```bash
+jupyter notebook examples/demo_uncertainty_insufficient_information.ipynb
+```
+
 `demo_arx.py` focuses on identification/prediction comparisons.
 
 `demo_stability_and_robustness.py` adds controls-oriented outputs:
@@ -151,6 +157,24 @@ model.fit(y, u)
 mean, var = model.predict_next_distribution(y_hist, u_hist)
 print(mean, var)
 ```
+
+
+## Citation
+
+If this repository is useful in your work, you can cite it with the following BibTeX entry:
+
+```bibtex
+@software{bayesian_arx_sysid_2026,
+  title        = {Bayesian ARX System Identification},
+  author       = {{Bayesian ARX SysID Contributors}},
+  year         = {2026},
+  version      = {0.1.0},
+  note         = {Python package},
+  url          = {https://github.com/<owner>/bayesian-sysid}
+}
+```
+
+> Replace `<owner>` in the URL with your GitHub organization or username.
 
 ## Notes
 
