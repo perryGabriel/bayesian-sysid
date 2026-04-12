@@ -5,7 +5,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-from bayes_sysid import BayesianARX, simulate_arx
+from bayes_sysid.models import BayesianARX
+from bayes_sysid import simulate_arx
 from bayes_sysid.analysis.frequency_response import (
     arx_frequency_response,
     posterior_frequency_response_samples,
