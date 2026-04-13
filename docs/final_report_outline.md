@@ -19,7 +19,7 @@ This project studies Bayesian system identification for linear discrete-time dyn
 Given observed input/output trajectories from an unknown dynamical system, we want to identify a model that predicts future outputs and is useful for control analysis. The specific modeling family is ARX:
 
 $$
-y_t = \sum_{i=1}^{n_a} a_i y_{t-i} + \sum_{j=1}^{n_b} b_j u_{t-j} + e_t.
+y_{t} = \sum_{i=1}^{n_a} a_i y_{t-i} + \sum_{j=1}^{n_b} b_j u_{t-j} + e_{t}.
 $$
 
 Classical least-squares ARX estimation returns a single parameter vector $\hat\theta$. In many realistic settings (limited data, noisy measurements, weak input excitation), this can yield unstable or misleading downstream conclusions because uncertainty is ignored.
@@ -44,10 +44,10 @@ This project is worth studying for three reasons:
 
 ### 2.1 Core Bayesian ARX model
 
-Let $\phi_t$ denote the regressor of lagged outputs and inputs. We define
+Let $\phi_{t}$ denote the regressor of lagged outputs and inputs. We define
 
 $$
-y_t = \phi_t^\top\theta + e_t, \quad e_t\sim \mathcal{N}(0,\sigma^2),
+y_{t} = \phi_{t}^\top\theta + e_{t}, \quad e_{t}\sim \mathcal{N}(0,\sigma^2),
 $$
 
 with prior
@@ -64,10 +64,10 @@ $$
 \mu_N=\Sigma_N\left(\Sigma_0^{-1}\mu_0+\frac{1}{\sigma^2}\Phi^\top y\right).
 $$
 
-The one-step predictive distribution at $\phi_*$ is
+The one-step predictive distribution at $\phi_{\ast}$ is
 
 $$
-y_*\mid\mathcal D,\phi_*\sim \mathcal N\left(\phi_*^\top\mu_N,\;\phi_*^\top\Sigma_N\phi_*+\sigma^2\right).
+y_{\ast}\mid\mathcal D,\phi_{\ast}\sim \mathcal N\left(\phi_{\ast}^\top\mu_N,\;\phi_{\ast}^\top\Sigma_N\phi_{\ast}+\sigma^2\right).
 $$
 
 This is explicitly Bayesian because uncertainty in $\theta$ is maintained and integrated into predictions.
