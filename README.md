@@ -1,24 +1,34 @@
 # Bayesian ARX System Identification
 
-A small research-oriented Python repo for **Bayesian linear system identification** using an **ARX model**.
+A research-oriented Python project for **Bayesian linear system identification** with
+**ARX (AutoRegressive with eXogenous input)** models, plus uncertainty-aware tools
+for stability and closed-loop control analysis.
 
-The basic idea is:
+This repository is designed for class projects and rapid experimentation: it provides
+simple APIs, interpretable Bayesian math, and reproducible demos that visualize what
+changes when we propagate posterior uncertainty into downstream control tasks.
 
-- model the next output as a linear function of past outputs and inputs,
-- place a Gaussian prior on the ARX parameter vector,
-- update that prior with data to obtain a Gaussian posterior,
-- use the posterior to produce either
-  - a **posterior predictive distribution** for the next output, or
-  - a **plug-in prediction** using the posterior mean parameters.
+---
 
-This is the Bayesian analogue of least-squares ARX identification.
+## 1) Project objective
 
-## Model
+The main objective is to identify low-order dynamical models from input/output data,
+while preserving and using uncertainty in parameter estimates. In contrast to plain
+least squares, Bayesian ARX gives a posterior distribution over parameters, enabling:
 
-For orders `na` and `nb`, we use
+- predictive intervals (not just point predictions),
+- uncertainty-aware stability analysis,
+- posterior-sampled frequency-response envelopes,
+- Monte Carlo closed-loop performance and robustness checks.
+
+---
+
+## 2) Mathematical model
+
+For ARX orders `na` and `nb`, we model
 
 $$
-y_t = \phi_t^\top \theta + e_t, \qquad e_t \sim \mathcal N(0, \sigma^2)
+y_t = \phi_t^\top \theta + e_t,\qquad e_t \sim \mathcal{N}(0,\sigma^2)
 $$
 
 with regressor
@@ -27,141 +37,179 @@ $$
 \phi_t = [y_{t-1},\dots,y_{t-na},u_{t-1},\dots,u_{t-nb}]^\top.
 $$
 
-The prior is
+Prior:
 
 $$
-\theta \sim \mathcal N(\mu_0, \Sigma_0).
+\theta \sim \mathcal{N}(\mu_0,\Sigma_0).
 $$
 
-Given data, the posterior is Gaussian:
+Given stacked data `(Φ, y)`, the Gaussian posterior is
 
 $$
-\Sigma_N^{-1} = \Sigma_0^{-1} + \frac{1}{\sigma^2} \Phi^\top \Phi,
+\Sigma_N^{-1} = \Sigma_0^{-1} + \frac{1}{\sigma^2}\Phi^\top\Phi,
 \qquad
 \mu_N = \Sigma_N\left(\Sigma_0^{-1}\mu_0 + \frac{1}{\sigma^2}\Phi^\top y\right).
 $$
 
-For a new regressor $\phi_{*}$, the posterior predictive distribution is
+For a new regressor $\phi_*$, posterior predictive is
 
 $$
-y_{\ast} \mid \mathcal D, \phi_{\ast} \sim
-\mathcal N\left(
-\phi_{\ast}^{\top} \mu_N,
-\phi_{\ast}^{\top} \Sigma_N \phi_{\ast} + \sigma^2
-\right).
+y_*\mid\mathcal{D},\phi_* \sim
+\mathcal{N}\left(\phi_*^\top\mu_N,\,\phi_*^\top\Sigma_N\phi_*+\sigma^2\right).
 $$
 
-That predictive variance contains both:
+Predictive variance combines:
 
-- **noise variance** $\sigma_2$, and
-- **parameter uncertainty** $\phi_{\ast}^T \sum_N \phi_{*}$.
+- observation noise: $\sigma^2$,
+- parameter uncertainty: $\phi_*^\top\Sigma_N\phi_*$.
 
-## Repo structure
+The repository also includes an **unknown-noise** Bayesian ARX variant with a
+Student-t predictive distribution.
+
+---
+
+## 3) Key features
+
+- Bayesian and least-squares ARX fitting APIs.
+- Known-noise and unknown-noise Bayesian variants.
+- Prior construction helpers (isotropic, diagonal, scale-aware).
+- Rolling-origin ARX order selection.
+- Posterior-sampled stability probability and pole-cloud analysis.
+- Frequency-response sampling and uncertainty envelopes.
+- Closed-loop Monte Carlo simulation under posterior parameter samples.
+- Nominal and empirical (posterior) gain/phase margin summaries.
+
+Stability conventions:
+
+- `domain="discrete"` (default): stable if every pole satisfies `|z| < 1 - tol`.
+- `domain="continuous"`: stable if every pole satisfies `Re(s) < -tol`.
+
+---
+
+## 4) Repository structure
 
 ```text
-bayesian_arx_repo/
+.
 ├── README.md
 ├── pyproject.toml
+├── docs/
+│   ├── controls_addons_research_plan.md
+│   ├── repo_audit_and_expansion_plan.md
+│   └── final_report.md
 ├── examples/
-│   └── demo_arx.py
-├── src/
-│   └── bayes_sysid/
-│       ├── __init__.py
-│       ├── arx.py          # backward-compatible facade
-│       ├── regression.py   # ARX regressor construction
-│       ├── models.py       # LS/Bayesian ARX estimators
-│       ├── selection.py    # rolling order search
-│       ├── priors.py       # prior helper utilities
-│       ├── metrics.py
-│       ├── simulate.py
-│       ├── analysis/
-│       │   ├── stability.py
-│       │   └── frequency_response.py
-│       └── control/
-│           ├── closed_loop.py
-│           └── margins.py
+│   ├── demo_arx.py
+│   ├── demo_stability_and_robustness.py
+│   ├── demo_uncertainty_insufficient_information.ipynb
+│   └── artifacts/
+│       ├── posterior_trajectory_band.png
+│       ├── predictive_density_annotated.png
+│       ├── stability_pole_cloud.png
+│       ├── frequency_response_envelope.png
+│       └── closed_loop_monte_carlo.png
+├── src/bayes_sysid/
+│   ├── __init__.py
+│   ├── arx.py
+│   ├── models.py
+│   ├── regression.py
+│   ├── priors.py
+│   ├── selection.py
+│   ├── metrics.py
+│   ├── simulate.py
+│   ├── analysis/
+│   │   ├── stability.py
+│   │   └── frequency_response.py
+│   └── control/
+│       ├── closed_loop.py
+│       ├── margins.py
+│       ├── lft.py
+│       └── tuning.py
 └── tests/
-    ├── test_arx.py
-    ├── test_metrics.py
-    ├── test_simulate.py
-    ├── test_api_structure.py
-    ├── test_stability_analysis.py
-    ├── test_frequency_response.py
-    ├── test_closed_loop_control.py
-    └── test_robust_margins.py
 ```
 
-## Installation
+---
 
-From the repo root:
+## 5) Installation
+
+From repository root:
 
 ```bash
 pip install -e .
 ```
 
-Or install dependencies manually:
+If your environment blocks network access during build isolation, use:
 
 ```bash
-pip install numpy scipy matplotlib
+pip install -e . --no-build-isolation
 ```
 
-## Quick demos
+Optional direct dependencies:
+
+```bash
+pip install numpy scipy matplotlib pytest
+```
+
+---
+
+## 6) Quick start
+
+### Minimal API example
+
+```python
+from bayes_sysid import BayesianARX
+
+# Build + fit
+model = BayesianARX(na=2, nb=2, sigma2=0.05)
+model.fit(y, u)
+
+# One-step predictive distribution
+mean, var = model.predict_next_distribution(y_hist, u_hist)
+print("predictive mean:", mean)
+print("predictive variance:", var)
+```
+
+### Run demos
 
 ```bash
 python examples/demo_arx.py
 python examples/demo_stability_and_robustness.py
 ```
 
-For uncertainty demos in undersampled / low-data regimes, open:
+Notebook for low-data uncertainty behavior:
 
 ```bash
 jupyter notebook examples/demo_uncertainty_insufficient_information.ipynb
 ```
 
-`demo_arx.py` focuses on identification/prediction comparisons.
+---
 
-`demo_stability_and_robustness.py` adds controls-oriented outputs:
+## 7) Validation and tests
 
-- posterior stability probability and pole-cloud visualization,
-- posterior frequency-response uncertainty envelope,
-- nominal + empirical robust margin summary,
-- closed-loop Monte Carlo response bands under posterior uncertainty.
+Run unit tests:
 
-
-## Current capabilities
-
-In addition to Bayesian/LS ARX fitting, the repo now includes:
-
-- unknown-noise Bayesian ARX (`BayesianARXUnknownNoise`) with Student-t predictive distributions,
-- prior helper utilities (isotropic, AR-vs-input diagonal, regressor-variance scaling),
-- rolling-origin ARX order search,
-- analysis tools for ARX stability and posterior stability probability,
-- posterior frequency-response sampling and uncertainty envelopes,
-- closed-loop Monte Carlo simulation with static/PID controllers,
-- preliminary gain/phase margin summaries (nominal + empirical posterior).
-
-Stability checks support two explicit conventions:
-
-- `domain="discrete"` (default): stable iff every pole satisfies `|z| < 1 - tol`.
-- `domain="continuous"`: stable iff every pole satisfies `Re(s) < -tol` (requires
-  continuous-time pole conversion support).
-
-## Main class
-
-```python
-from bayes_sysid import BayesianARX
-
-model = BayesianARX(na=2, nb=2, sigma2=0.05)
-model.fit(y, u)
-
-mean, var = model.predict_next_distribution(y_hist, u_hist)
-print(mean, var)
+```bash
+pytest -q
 ```
 
+The test suite covers ARX fitting behavior, predictive utilities, API structure,
+stability/frequency-response analysis, and closed-loop/robustness helpers.
 
-## Citation
+---
 
-If this repository is useful in your work, you can cite it with the following BibTeX entry:
+## 8) Final report for course rubric
+
+A course-style final report aligned with the grading rubric (background,
+Bayesian-method details, results interpretation, and clarity) is provided at:
+
+- `docs/final_report.md`
+
+It is formatted for straightforward conversion to PDF (e.g., Pandoc) using 12pt
+font, 1-inch margins, single spacing, and target length 4–5 pages.
+
+---
+
+## 9) Citation
+
+If this repository is useful in your work, you can cite:
 
 ```bibtex
 @software{bayesian_arx_sysid_2026,
@@ -174,16 +222,14 @@ If this repository is useful in your work, you can cite it with the following Bi
 }
 ```
 
-> Replace `<owner>` in the URL with your GitHub organization or username.
+---
 
-## Notes
+## 10) Limitations and next steps
 
-This repo is intentionally pedagogical, but now includes a first controls-analysis stack
-(stability/frequency/closed-loop/margins) on top of Bayesian ARX.
+Current scope is SISO linear ARX with uncertainty propagation into selected control
+analyses. Natural extensions:
 
-Natural next extensions include:
-
-- explicit state-space realization and LQR/LQG/observer pipelines,
-- structured robustness analysis with richer uncertainty blocks,
-- MIMO identification and dynamical structure function reconstruction,
-- online/sequential Bayesian updates and adaptive control loops.
+- explicit state-space realization and observer design,
+- MIMO identification,
+- richer structured uncertainty and robust synthesis,
+- online/sequential Bayesian updates for adaptive control loops.
