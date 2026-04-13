@@ -34,26 +34,26 @@ This means Sprint 1 and Sprint 2 now have baseline implementations, and the road
 
 For SISO ARX with
 
-\[
+$$
 y_t + a_1 y_{t-1}+\cdots+a_{n_a}y_{t-n_a}=b_1u_{t-1}+\cdots+b_{n_b}u_{t-n_b}+e_t,
-\]
+$$
 
 internal stability of the noise-free autonomous part is governed by roots of
 
-\[
+$$
 A(z^{-1}) = 1 + a_1 z^{-1}+\cdots+a_{n_a}z^{-n_a}.
-\]
+$$
 
 Discrete-time stability can be tested directly by checking if poles of
-\(A(z^{-1})^{-1}\) lie strictly inside the unit disk.
+$A(z^{-1})^{-1}$ lie strictly inside the unit disk.
 
 For continuous-time analyses, stability is based on pole real parts:
-\(\Re(s) < -\text{tol}\) after mapping discrete ARX poles to a continuous approximation.
+$\Re(s) < -\text{tol}$ after mapping discrete ARX poles to a continuous approximation.
 
 With Bayesian posteriors, this can become a **probabilistic stability** statement:
-- sample \(\theta\) from posterior,
+- sample $\theta$ from posterior,
 - compute poles per sample,
-- estimate \(\Pr(\text{stable}\mid \mathcal D)\).
+- estimate $\Pr(\text{stable}\mid \mathcal D)$.
 
 This is immediately useful and interpretable for controls users.
 
@@ -111,13 +111,13 @@ However, you can derive realizations from transfer models (ARX -> realization) w
 
 Some robust margins can be approximated from transfer models/frequency response directly
 (e.g., gain/phase margins, disk margins approximations), but full structured uncertainty
-(\(M-\Delta\)) workflows are much easier with state-space and robust-control toolchains.
+($M-\Delta$) workflows are much easier with state-space and robust-control toolchains.
 
 ### Minimal next steps required
 
 - Add frequency-response generation from ARX posterior samples.
 - Define uncertainty envelope from posterior (e.g., multiplicative uncertainty weight).
-- For full \(\mu\)-analysis style results, introduce a robust-control backend
+- For full $\mu$-analysis style results, introduce a robust-control backend
   (likely Python wrappers or MATLAB bridge if strict functionality needed).
 - Formalize feedback interconnection and uncertainty block assumptions.
 
@@ -201,7 +201,7 @@ These produce controls-relevant figures quickly while postponing full state-spac
 
 - Full LQR/LQG synthesis with principled uncertainty propagation.
 - Kalman/Luenberger observer design with observability guarantees.
-- Mature structured-uncertainty robust analysis (\(M-\Delta\), \(\mu\)-like analyses).
+- Mature structured-uncertainty robust analysis ($M-\Delta$, $\mu$-like analyses).
 - DSF reconstruction at meaningful scale (MIMO + identifiability conditions).
 
 ---
@@ -210,7 +210,7 @@ These produce controls-relevant figures quickly while postponing full state-spac
 
 ### Program A: Bayesian stability certificates for ARX identification
 
-- Problem: estimate \(\Pr(\text{stable}\mid\mathcal D)\) and confidence intervals.
+- Problem: estimate $\Pr(\text{stable}\mid\mathcal D)$ and confidence intervals.
 - Deliverables: bounds, diagnostics, and benchmark comparisons with LS confidence ellipsoids.
 - Venue: ACC/CDC.
 
