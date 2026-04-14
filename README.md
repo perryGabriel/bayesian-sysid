@@ -203,11 +203,10 @@ If this repository is useful in your work, you can cite:
 ```bibtex
 @software{bayesian_arx_sysid_2026,
   title        = {Bayesian ARX System Identification},
-  author       = {{Bayesian ARX SysID Contributors}},
+  author       = {Gabriel M. Perry},
   year         = {2026},
   version      = {0.1.0},
-  note         = {Python package},
-  url          = {https://github.com/<owner>/bayesian-sysid}
+  url          = {https://github.com/perryGabriel/bayesian-sysid}
 }
 ```
 
