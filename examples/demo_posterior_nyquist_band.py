@@ -89,25 +89,46 @@ def main() -> None:
     H_med = np.median(H_samples, axis=0)
     H_med_c = _closed_nyquist_curve(H_med)
     ax1.plot(H_med_c.real, H_med_c.imag, color="tab:orange", linewidth=2.0, label="posterior median")
-    ax1.scatter([-1.0], [0.0], color="red", marker="x", s=80, label="-1 point")
+    ax1.scatter([-1.0], [0.0], color="red", marker=".", s=8, label="-1 point")
     ax1.set_title("Posterior Nyquist cloud")
     ax1.set_xlabel("Re")
     ax1.set_ylabel("Im")
     ax1.axhline(0.0, color="black", alpha=0.2, linewidth=0.8)
     ax1.axvline(0.0, color="black", alpha=0.2, linewidth=0.8)
     ax1.set_aspect("equal", adjustable="box")
+
+    # set the figure bounds to be +- 50% around posterior mean region, with some margin
+    x_min = np.min(H_med_c.real)*1.5
+    x_max = np.max(H_med_c.real)*1.5
+    y_min = np.min(H_med_c.imag)*1.5
+    y_max = np.max(H_med_c.imag)*1.5
+    # round up the shorter side to make the plot 1:2 aspect ratio, which is more standard for Nyquist plots
+    x_range = x_max - x_min
+    y_range = y_max - y_min
+    if x_range < 2 * y_range:
+        x_center = (x_min + x_max) / 2
+        x_min = x_center - y_range
+        x_max = x_center + y_range
+    else:
+        y_center = (y_min + y_max) / 2
+        y_min = y_center - x_range / 2
+        y_max = y_center + x_range / 2
+    ax1.set_xlim(x_min, x_max)
+    ax1.set_ylim(y_min, y_max)  
+
+
     ax1.legend(fontsize=8)
 
     # Right: polar uncertainty band after translating by +1 (center at -1).
     ax2 = fig.add_subplot(1, 2, 2, projection="polar")
-    ax2.fill_between(th, r_lo[order], r_hi[order], color="tab:purple", alpha=0.3, label="95% radial band")
-    ax2.plot(th, r_md[order], color="tab:purple", linewidth=2.0, label="median radius")
+    ax2.fill_between(th, np.log10(r_lo[order]), np.log10(r_hi[order]), color="tab:purple", alpha=0.3, label="95% radial band")
+    ax2.plot(th, np.log10(r_md[order]), color="tab:purple", linewidth=2.0, label="median radius")
 
     warn_mask = near_critical_prob[order] >= warn_prob_threshold
     if np.any(warn_mask):
         ax2.scatter(
             th[warn_mask],
-            r_md[order][warn_mask],
+            np.log10(r_md[order][warn_mask]),
             c=near_critical_prob[order][warn_mask],
             cmap="Reds",
             s=18,
