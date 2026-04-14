@@ -201,7 +201,7 @@ font, 1-inch margins, single spacing, and target length 4–5 pages.
 If this repository is useful in your work, you can cite:
 
 ```bibtex
-@software{bayesian_arx_sysid_2026,
+@misc{bayesian_arx_sysid_2026,
   title        = {Bayesian ARX System Identification},
   author       = {Gabriel M. Perry},
   year         = {2026},
