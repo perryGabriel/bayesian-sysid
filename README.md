@@ -99,6 +99,7 @@ Stability conventions:
 ├── examples/
 │   ├── demo_arx.py
 │   ├── demo_stability_and_robustness.py
+│   ├── demo_posterior_nyquist_band.py
 │   ├── demo_uncertainty_insufficient_information.ipynb
 │   └── artifacts/
 │       ├── posterior_trajectory_band.png
@@ -106,6 +107,8 @@ Stability conventions:
 │       ├── stability_pole_cloud.png
 │       ├── frequency_response_envelope.png
 │       └── closed_loop_monte_carlo.png
+│       ├── closed_loop_monte_carlo.png
+│       └── nyquist_posterior_band.png
 ├── src/bayes_sysid/
 │   ├── __init__.py
 │   ├── arx.py
@@ -131,22 +134,7 @@ Stability conventions:
 ## 5) Installation
 
 From repository root:
-
-```bash
-pip install -e .
-```
-
-If your environment blocks network access during build isolation, use:
-
-```bash
-pip install -e . --no-build-isolation
-```
-
-Optional direct dependencies:
-
-```bash
-pip install numpy scipy matplotlib pytest
-```
+@@ -150,50 +152,51 @@ pip install numpy scipy matplotlib pytest
 
 ---
 
@@ -172,6 +160,7 @@ print("predictive variance:", var)
 ```bash
 python examples/demo_arx.py
 python examples/demo_stability_and_robustness.py
+python examples/demo_posterior_nyquist_band.py
 ```
 
 Notebook for low-data uncertainty behavior:
