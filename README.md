@@ -100,7 +100,7 @@ Stability conventions:
 │   ├── demo_arx.py
 │   ├── demo_stability_and_robustness.py
 │   ├── demo_posterior_nyquist_band.py
-│   ├── demo_uncertainty_insufficient_information.ipynb
+│   ├── demo_uncertainty_insufficient_information.py
 │   └── artifacts/
 │       ├── posterior_trajectory_band.png
 │       ├── predictive_density_annotated.png
@@ -161,12 +161,7 @@ print("predictive variance:", var)
 python examples/demo_arx.py
 python examples/demo_stability_and_robustness.py
 python examples/demo_posterior_nyquist_band.py
-```
-
-Notebook for low-data uncertainty behavior:
-
-```bash
-jupyter notebook examples/demo_uncertainty_insufficient_information.ipynb
+python examples/demo_uncertainty_insufficient_information.py
 ```
 
 ---
