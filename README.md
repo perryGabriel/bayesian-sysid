@@ -10,6 +10,10 @@ changes when we propagate posterior uncertainty into downstream control tasks.
 
 ---
 
+### YouTube Presentation
+
+Click [here](https://youtu.be/ctGgKKvs0lw) to view an presentation of the results of this project.
+
 ## 1) Project objective
 
 The main objective is to identify low-order dynamical models from input/output data,

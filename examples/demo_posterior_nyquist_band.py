@@ -142,7 +142,7 @@ def main() -> None:
     fig.suptitle(
         "Nyquist uncertainty under posterior ARX parameters\n"
         f"P(nonzero winding)={p_nonzero:.2f}, max near-critical prob={p_near:.2f}",
-        fontsize=11,
+        fontsize=20,
     )
     fig.tight_layout()
 
