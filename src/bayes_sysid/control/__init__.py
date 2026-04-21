@@ -1,4 +1,5 @@
 from .closed_loop import monte_carlo_closed_loop_paths, simulate_closed_loop_arx
+from .gramians import controllability_gramian, hankel_singular_values, observability_gramian, posterior_hsv_summary
 from .dsf import (
     dsf_from_transfer_matrix,
     posterior_edge_probability,
@@ -31,6 +32,10 @@ __all__ = [
     "is_observable",
     "design_luenberger_gain",
     "run_kalman_filter",
+    "controllability_gramian",
+    "observability_gramian",
+    "hankel_singular_values",
+    "posterior_hsv_summary",
     "arx_to_state_space",
     "minimal_realization",
     "validate_realization_shapes",

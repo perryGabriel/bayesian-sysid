@@ -4,9 +4,8 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.linalg import solve_discrete_lyapunov
-
 from bayes_sysid import BayesianARX, simulate_arx
+from bayes_sysid.control.gramians import posterior_hsv_summary
 from bayes_sysid.control.observer import design_luenberger_gain, run_kalman_filter
 from bayes_sysid.control.realization import arx_to_state_space
 
@@ -30,25 +29,19 @@ def main() -> None:
     y_id = simulate_arx(a_true, b_true, u_id, sigma=sigma, random_state=12)
     model = BayesianARX(na=2, nb=2, sigma2=sigma**2).fit(y_id, u_id[2:])
 
-    # Posterior realization/Gramian ensemble.
+    # Posterior realization/Gramian ensemble via control.gramians APIs.
     n_samples = 500
-    theta_samples = model.sample_parameters(n_samples=n_samples, random_state=4)
+    hsv_summary = posterior_hsv_summary(model, n_samples=n_samples, random_state=4)
 
-    tr_wc: list[float] = []
-    tr_wo: list[float] = []
+    theta_samples = model.sample_parameters(n_samples=n_samples, random_state=4)
     stable_poles: list[np.ndarray] = []
     for theta in theta_samples:
-        A, B, C, _ = arx_to_state_space(theta[: model.na], theta[model.na : model.na + model.nb])
+        A, _, _, _ = arx_to_state_space(theta[: model.na], theta[model.na : model.na + model.nb])
         if _is_discrete_stable(A):
-            Wc = solve_discrete_lyapunov(A, B @ B.T)
-            Wo = solve_discrete_lyapunov(A.T, C.T @ C)
-            tr_wc.append(float(np.trace(Wc)))
-            tr_wo.append(float(np.trace(Wo)))
             stable_poles.append(np.linalg.eigvals(A))
 
-    tr_wc_arr = np.asarray(tr_wc)
-    tr_wo_arr = np.asarray(tr_wo)
-    print(f"Stable posterior realizations: {len(tr_wc_arr)}/{n_samples}")
+    n_stable = int(hsv_summary["n_stable"])
+    print(f"Stable posterior realizations: {n_stable}/{n_samples}")
 
     # Pole-placement + Kalman demonstration on posterior mean realization.
     A_mu, B_mu, C_mu, _ = arx_to_state_space(model.muN[: model.na], model.muN[model.na : model.na + model.nb])
@@ -101,13 +94,15 @@ def main() -> None:
     plt.savefig(pole_path, dpi=160)
     plt.close()
 
-    # Figure 2: Bayesian Gramian traces.
+    # Figure 2: Bayesian HSV quantiles from posterior summary API.
+    hsv_q = np.asarray(hsv_summary["hsv_quantiles"], dtype=float)
+    modes = np.arange(1, hsv_q.shape[1] + 1)
     plt.figure(figsize=(7, 4))
-    plt.hist(tr_wc_arr, bins=30, alpha=0.6, label="trace(Wc)")
-    plt.hist(tr_wo_arr, bins=30, alpha=0.6, label="trace(Wo)")
-    plt.xlabel("trace value")
-    plt.ylabel("count")
-    plt.title("Posterior (Bayesian) Gramian trace distributions")
+    plt.plot(modes, hsv_q[1], marker="o", label="median HSV")
+    plt.fill_between(modes, hsv_q[0], hsv_q[2], alpha=0.25, label="10-90% band")
+    plt.xlabel("mode index")
+    plt.ylabel("HSV")
+    plt.title("Posterior Hankel singular value quantiles")
     plt.legend()
     plt.tight_layout()
     gramian_path = out_dir / "observer_demo_gramian_traces.png"
@@ -130,13 +125,13 @@ def main() -> None:
 
     # Table outputs.
     summary_rows = [
-        ("stable_sample_ratio", len(tr_wc_arr) / n_samples),
-        ("trace_Wc_median", float(np.median(tr_wc_arr))),
-        ("trace_Wo_median", float(np.median(tr_wo_arr))),
-        ("trace_Wc_q10", float(np.quantile(tr_wc_arr, 0.10))),
-        ("trace_Wc_q90", float(np.quantile(tr_wc_arr, 0.90))),
-        ("trace_Wo_q10", float(np.quantile(tr_wo_arr, 0.10))),
-        ("trace_Wo_q90", float(np.quantile(tr_wo_arr, 0.90))),
+        ("stable_sample_ratio", float(hsv_summary["stable_fraction"])),
+        ("hsv_mode1_median", float(hsv_q[1, 0])),
+        ("hsv_mode2_median", float(hsv_q[1, 1] if hsv_q.shape[1] > 1 else hsv_q[1, 0])),
+        ("hsv_mode1_q10", float(hsv_q[0, 0])),
+        ("hsv_mode1_q90", float(hsv_q[2, 0])),
+        ("Wc_cond_median", float(hsv_summary["gramian_diagnostics"]["Wc"]["median_condition_number"])),
+        ("Wo_cond_median", float(hsv_summary["gramian_diagnostics"]["Wo"]["median_condition_number"])),
         ("observer_pole_1_real", float(np.real(eig_obs[0]))),
         ("observer_pole_2_real", float(np.real(eig_obs[1]))),
         ("rmse_open_loop", rmse_open),
