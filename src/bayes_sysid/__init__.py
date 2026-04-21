@@ -15,6 +15,7 @@ from .priors import (
     scale_prior_covariance_by_regressor_variance,
 )
 from .simulate import simulate_arx
+from .online import OnlineBayesianARX, OnlineSummarySnapshot, recursive_posterior_update
 
 __all__ = [
     "ARXRegressionData",
@@ -35,4 +36,7 @@ __all__ = [
     "mae",
     "rmse",
     "simulate_arx",
+    "recursive_posterior_update",
+    "OnlineSummarySnapshot",
+    "OnlineBayesianARX",
 ]
