@@ -1,0 +1,13 @@
+metric,value
+stable_sample_ratio,1.00000000
+trace_Wc_median,4.40817465
+trace_Wo_median,1.65768102
+trace_Wc_q10,3.86729527
+trace_Wc_q90,5.20324706
+trace_Wo_q10,1.43171236
+trace_Wo_q90,1.96842667
+observer_pole_1_real,0.20000000
+observer_pole_2_real,0.30000000
+rmse_open_loop,0.07591586
+rmse_kalman,0.06777576
+rmse_improvement_percent,10.72253031
