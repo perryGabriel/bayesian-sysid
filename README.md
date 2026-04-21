@@ -1,5 +1,8 @@
 # Bayesian ARX System Identification
 
+**Owner:** Bayes SysID maintainers  
+**Last validated on:** 2026-04-21
+
 A research-oriented Python project for **Bayesian linear system identification** with
 **ARX (AutoRegressive with eXogenous input)** models, plus uncertainty-aware tools
 for stability, realizations, observers, and closed-loop analysis.
@@ -82,7 +85,7 @@ $$
 
 Across posterior samples, the set
 $\{W_c^{(s)}, W_o^{(s)}\}_{s=1}^S$ is a **Bayesian Gramian ensemble**. In this
-project, “Bayesian Gramians” means these Gramians are random objects induced by
+project, “Bayesian Gramian ensemble” means these Gramians are random objects induced by
 posterior uncertainty in ARX parameters.
 
 Observer tooling now includes:
@@ -106,7 +109,7 @@ Observer tooling now includes:
 - Observer baselines: observability, Luenberger gain, and Kalman filtering.
 - Closed-loop Monte Carlo simulation under posterior parameter samples.
 - Nominal and empirical (posterior) gain/phase margin summaries.
-- Prototype DSF utilities for 2x2 MIMO network structure exploration (edge probabilities + diagnostics).
+- DSF prototype utilities for 2x2 MIMO network structure exploration (edge probabilities + diagnostics), explicitly not theorem-backed yet.
 
 Stability conventions:
 
@@ -120,27 +123,29 @@ Stability conventions:
 ```text
 .
 ├── README.md
-├── pyproject.toml
 ├── docs/
+│   ├── roadmap_status.md
+│   ├── repo_audit_and_expansion_plan.md
+│   ├── controls_addons_research_plan.md
+│   └── final_report_outline.md
 ├── examples/
 │   ├── demo_arx.py
+│   ├── demo_online_arx.py
 │   ├── demo_stability_and_robustness.py
-│   ├── demo_posterior_nyquist_band.py
-│   ├── demo_uncertainty_insufficient_information.py
 │   ├── demo_observer_and_bayesian_gramians.py
+│   ├── demo_dsf_scaffold.py
 │   └── artifacts/
 ├── src/bayes_sysid/
+│   ├── arx.py
+│   ├── mimo.py
+│   ├── online.py
+│   ├── metrics.py
 │   ├── analysis/
 │   └── control/
-│       ├── realization.py
-│       ├── observer.py
-│       ├── closed_loop.py
-│       ├── margins.py
-│       ├── lft.py
-│       ├── tuning.py
-│       └── dsf.py
 └── tests/
 ```
+
+Roadmap and status tracking live in `docs/roadmap_status.md` and are kept synchronized with tests/examples.
 
 ---
 
@@ -215,6 +220,12 @@ Run unit tests:
 pytest -q
 ```
 
+Run docs consistency checks:
+
+```bash
+python scripts/check_docs_consistency.py
+```
+
 The test suite covers ARX fitting behavior, predictive utilities, API structure,
 stability/frequency-response analysis, realizations, observer helpers, and
 closed-loop/robustness utilities.
@@ -246,6 +257,6 @@ selected control analyses. Natural extensions:
 - robust synthesis with posterior-aware uncertainty blocks,
 - online/sequential Bayesian updates for adaptive loops.
 
-Current `control.lft` structured-uncertainty utilities are conservative sampled and
-small-gain-style surrogates; they should not be interpreted as exact structured
+Current `control.lft` structured-uncertainty utilities are conservative sampled
+small-gain surrogates; report them as surrogate robustness indicators rather than exact structured
 singular value ($\mu$) analysis.

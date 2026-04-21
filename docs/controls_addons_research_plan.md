@@ -1,5 +1,8 @@
 # Controls-Focused Add-ons Roadmap (from ARX to publishable research)
 
+**Owner:** Bayes SysID maintainers  
+**Last validated on:** 2026-04-21
+
 ## Context
 
 Current repository capabilities are strongest for Bayesian SISO ARX identification and uncertainty-aware prediction.
@@ -26,11 +29,11 @@ Implemented as first drafts:
 This means Sprint 1 and Sprint 2 now have baseline implementations, and the roadmap below should be read as
 "strengthen + formalize" rather than "start from scratch."
 
-Not implemented yet (important gap for next phases):
+Status clarification:
 
-- ARX/state-space bridge utilities (realization, minimality, and model-order cleanup).
-- Controllability/observability Grammians and Hankel singular value analysis.
-- LQR/LQG synthesis and observer/Kalman design tools built on posterior samples.
+- ARX/state-space bridge utilities are implemented (realization + minimal realization); next step is numerical hardening and richer reporting.
+- Bayesian Gramian ensemble and Hankel singular value analysis are implemented; next step is benchmark depth and reduction policy guidance.
+- LQR/LQG and observer/Kalman tooling are implemented; next step is integrated posterior risk reporting.
 - Full DSF theorem-backed reconstruction and MIMO identifiability guarantees (prototype utilities now exist).
 
 ---
@@ -133,7 +136,7 @@ A runnable walkthrough is also available in `examples/demo_realization.ipynb`.
 
 Some robust margins can be approximated from transfer models/frequency response directly
 (e.g., gain/phase margins, disk margins approximations), but full structured uncertainty
-($M-\Delta$) workflows are much easier with state-space and robust-control toolchains.
+(M-Δ) workflows are much easier with state-space and robust-control toolchains.
 
 ### Minimal next steps required
 
@@ -202,20 +205,20 @@ For meaningful DSF reconstruction, at least MIMO ARX/ARMAX-style identification 
 - Implemented utilities: transfer-matrix construction from MIMO ARX lag tensors,
   heuristic DSF factorization, posterior edge probabilities, and validation helpers
   for identifiability assumptions + excitation richness.
-- Current limitation: this is a prototype and **not** a theorem-backed identifiability result.
+- Current limitation: this remains a prototype and is **not** yet a theorem-backed identifiability result.
 
 ---
 
-## 6) Controllability/observability Grammians and Hankel singular values
+## 6) Controllability/observability Gramians and Hankel singular values
 
 ### What is possible without state-space?
 
-Not in a principled way. Grammians and Hankel singular values are state-space objects, so this idea
+Not in a principled way. Gramians and Hankel singular values are state-space objects, so this idea
 requires an explicit realization pipeline first (ARX -> state-space).
 
 ### Minimal next steps required
 
-- Add a stable discrete-time Lyapunov solver wrapper for controllability and observability Grammians.
+- Add a stable discrete-time Lyapunov solver wrapper for controllability and observability Gramians.
 - Add rank/conditioning diagnostics and near-uncontrollable mode flags.
 - Add Hankel singular value computation and cumulative-energy truncation suggestions.
 - Add posterior uncertainty workflow over HSV spectra from posterior model samples.
@@ -248,7 +251,7 @@ These produce controls-relevant figures quickly while postponing full state-spac
 
 - Full LQR/LQG synthesis with principled uncertainty propagation.
 - Kalman/Luenberger observer design with observability guarantees.
-- Mature structured-uncertainty robust analysis ($M-\Delta$, $\mu$-like analyses).
+- Mature structured-uncertainty robust analysis (M-Δ), with explicit separation between surrogate metrics and full μ-analysis.
 - DSF reconstruction at meaningful scale (MIMO + identifiability conditions).
 
 ---
@@ -293,7 +296,7 @@ These produce controls-relevant figures quickly while postponing full state-spac
 
 - [x] Add ARX -> state-space realization.
 - [x] Add observer/Kalman baseline tools (LQR synthesis still pending).
-- [ ] Add a dedicated controllability/observability Grammians and Hankel singular value module.
+- [ ] Add a dedicated controllability/observability Gramians and Hankel singular value module.
 - [ ] Add Bayesian gain distribution reporting.
 
 ### Sprint 4 (advanced research)
