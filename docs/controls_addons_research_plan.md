@@ -131,6 +131,8 @@ A, B, C, D = arx_to_state_space(a, b, dt=0.1)
 A_min, B_min, C_min, D_min, kept = minimal_realization(A, B, C, D)
 ```
 
+A runnable walkthrough is also available in `examples/demo_realization.ipynb`.
+
 ### Novel angle
 
 - **Bayesian LQR under identification uncertainty** from ARX posterior samples.
