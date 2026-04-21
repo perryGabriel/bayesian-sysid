@@ -7,6 +7,7 @@ from .arx import (
     build_arx_regression,
     rolling_order_search,
 )
+from .mimo import BayesianMIMOARX, MIMORegressionData, build_mimo_regression
 from .metrics import gaussian_nll, interval_coverage, mae, rmse
 from .priors import (
     diagonal_arx_prior_covariance,
@@ -22,6 +23,9 @@ __all__ = [
     "LeastSquaresARX",
     "OrderSearchResult",
     "build_arx_regression",
+    "MIMORegressionData",
+    "BayesianMIMOARX",
+    "build_mimo_regression",
     "diagonal_arx_prior_covariance",
     "isotropic_prior_covariance",
     "rolling_order_search",

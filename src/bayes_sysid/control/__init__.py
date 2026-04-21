@@ -4,6 +4,7 @@ from .dsf import (
     dsf_from_transfer_matrix,
     posterior_edge_probability,
     transfer_matrix_from_mimo_arx,
+    transfer_matrix_samples_from_mimo_posterior,
     validate_excitation_richness,
     validate_identifiability_assumptions,
 )
@@ -65,6 +66,7 @@ __all__ = [
     "estimate_closed_loop_stability_probability",
     "tune_controller_probabilistic",
     "transfer_matrix_from_mimo_arx",
+    "transfer_matrix_samples_from_mimo_posterior",
     "dsf_from_transfer_matrix",
     "posterior_edge_probability",
     "validate_identifiability_assumptions",

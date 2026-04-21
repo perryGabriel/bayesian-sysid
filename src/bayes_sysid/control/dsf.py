@@ -76,6 +76,44 @@ def transfer_matrix_from_mimo_arx(
     return G
 
 
+
+def transfer_matrix_samples_from_mimo_posterior(
+    posterior_samples: dict[str, Array],
+    w: Array,
+) -> Array:
+    """Construct transfer-matrix posterior samples from native MIMO ARX samples.
+
+    Parameters
+    ----------
+    posterior_samples:
+        Dictionary containing ``a_lags`` and ``b_lags`` from
+        ``BayesianMIMOARX.sample_parameters``.
+    w:
+        Frequency grid with shape ``(n_freq,)`` in rad/sample.
+
+    Returns
+    -------
+    np.ndarray
+        Complex array with shape ``(n_samples, n_freq, p, m)``.
+    """
+    if "a_lags" not in posterior_samples or "b_lags" not in posterior_samples:
+        raise ValueError("posterior_samples must include 'a_lags' and 'b_lags'.")
+
+    a_samples = np.asarray(posterior_samples["a_lags"], dtype=float)
+    b_samples = np.asarray(posterior_samples["b_lags"], dtype=float)
+    if a_samples.ndim != 4:
+        raise ValueError("a_lags samples must have shape (n_samples, na, p, p).")
+    if b_samples.ndim != 4:
+        raise ValueError("b_lags samples must have shape (n_samples, nb, p, m).")
+    if a_samples.shape[0] != b_samples.shape[0]:
+        raise ValueError("a_lags and b_lags must have matching n_samples.")
+
+    n_samples = a_samples.shape[0]
+    G_samples = np.empty((n_samples, np.asarray(w).reshape(-1).size, a_samples.shape[2], b_samples.shape[3]), dtype=complex)
+    for s_idx in range(n_samples):
+        G_samples[s_idx] = transfer_matrix_from_mimo_arx(a_samples[s_idx], b_samples[s_idx], w)
+    return G_samples
+
 def validate_identifiability_assumptions(
     G: Array,
     rank_tol: float = 1e-8,
