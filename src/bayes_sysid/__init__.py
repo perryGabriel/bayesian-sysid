@@ -8,7 +8,21 @@ from .arx import (
     rolling_order_search,
 )
 from .mimo import BayesianMIMOARX, MIMORegressionData, build_mimo_regression
-from .metrics import gaussian_nll, interval_coverage, mae, rmse
+from .metrics import (
+    CalibrationRow,
+    PredictiveDiagnosticsReport,
+    RollingOriginNLLRow,
+    build_predictive_diagnostics_report,
+    export_report_csv,
+    gaussian_nll,
+    interval_coverage,
+    mae,
+    predictive_interval_coverage_vs_nominal,
+    rmse,
+    rolling_origin_nll_diagnostics,
+    sharpness_calibration_tradeoff_table,
+    z_from_nominal_level,
+)
 from .priors import (
     diagonal_arx_prior_covariance,
     isotropic_prior_covariance,
@@ -31,6 +45,15 @@ __all__ = [
     "isotropic_prior_covariance",
     "rolling_order_search",
     "scale_prior_covariance_by_regressor_variance",
+    "CalibrationRow",
+    "RollingOriginNLLRow",
+    "PredictiveDiagnosticsReport",
+    "build_predictive_diagnostics_report",
+    "predictive_interval_coverage_vs_nominal",
+    "sharpness_calibration_tradeoff_table",
+    "rolling_origin_nll_diagnostics",
+    "z_from_nominal_level",
+    "export_report_csv",
     "gaussian_nll",
     "interval_coverage",
     "mae",

@@ -166,6 +166,31 @@ model = BayesianARX(na=2, nb=2, sigma2=0.05).fit(y, u)
 mean, var = model.predict_next_distribution(y_hist, u_hist)
 ```
 
+### Predictive calibration + diagnostics snippet
+
+```python
+import numpy as np
+from bayes_sysid import build_predictive_diagnostics_report, export_report_csv
+
+nominal_levels = np.array([0.5, 0.8, 0.9, 0.95])
+report = build_predictive_diagnostics_report(
+    y_true=y_eval,
+    mean=pred_mean,
+    std=np.sqrt(pred_var),
+    nominal_levels=nominal_levels,
+    nll_by_order={
+        (1, 1): nll_roll_11,
+        (2, 2): nll_roll_22,
+        (3, 3): nll_roll_33,
+    },
+)
+export_report_csv(
+    report,
+    calibration_csv_path="examples/artifacts/predictive_calibration_table.csv",
+    rolling_nll_csv_path="examples/artifacts/rolling_origin_nll_by_order.csv",
+)
+```
+
 ### Run demos
 
 ```bash
@@ -175,6 +200,7 @@ python examples/demo_posterior_nyquist_band.py
 python examples/demo_uncertainty_insufficient_information.py
 python examples/demo_observer_and_bayesian_gramians.py
 python examples/demo_dsf_scaffold.py
+python examples/demo_metrics_diagnostics.py
 ```
 
 The new observer/Gramian demo writes figures and tables to `examples/artifacts/`.
