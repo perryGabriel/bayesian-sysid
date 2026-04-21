@@ -123,7 +123,7 @@ def main() -> None:
     plt.legend()
     plt.grid(alpha=0.2)
     plt.tight_layout()
-    case2_path = out_dir / "underconstarained_data.png"
+    case2_path = out_dir / "underconstrained_data.png"
     plt.savefig(case2_path, dpi=160)
     plt.show()
 

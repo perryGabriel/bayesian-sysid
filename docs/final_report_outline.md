@@ -1,5 +1,8 @@
 # Final Report: Bayesian ARX System Identification with Uncertainty-Aware Analysis
 
+**Owner:** Bayes SysID maintainers  
+**Last validated on:** 2026-04-21
+
 **Course:** CS 677  
 **Project repository:** `bayesian-sysid`  
 **Suggested export settings for submission PDF:** 12pt font, 1-inch margins, single spacing, 4–5 pages.

@@ -1,108 +1,59 @@
 # Repository Audit and Expansion Plan
 
-## Current functionality
+**Owner:** Bayes SysID maintainers  
+**Last validated on:** 2026-04-21
 
-This repository is a compact, pedagogical package for Bayesian system identification with
-single-input single-output (SISO) ARX models.
+## Current functionality snapshot
 
-### Implemented core features
+The repository now supports a full identification-to-controls workflow, centered on Bayesian ARX and expanded with MIMO, online updates, and control add-ons.
 
-- **Regression matrix builder (`build_arx_regression`)**
-  - Converts aligned output/input sequences into an ARX design matrix and targets.
-  - Supports flexible lag orders `na`, `nb` and validates input lengths.
+### Implemented features
 
-- **Classical baseline (`LeastSquaresARX`)**
-  - Fits ARX parameters via ordinary least squares.
-  - Supports one-step prediction and deterministic multi-step rollout.
+- SISO Bayesian ARX (`BayesianARX`) and unknown-noise variant (`BayesianARXUnknownNoise`).
+- LS baseline (`LeastSquaresARX`) and simulation (`simulate_arx`).
+- Rolling order search and predictive diagnostics (`rolling_order_search`, calibration and NLL utilities).
+- Online recursive Bayesian updates (`OnlineBayesianARX`).
+- MIMO Bayesian ARX (`BayesianMIMOARX`).
+- Stability, frequency-response, and Nyquist uncertainty analysis.
+- Realization, observer, LQR/LQG, and Bayesian Gramian/HSV summaries.
+- Closed-loop Monte Carlo, probabilistic controller tuning, classical/empirical robust margin summaries, and structured-surrogate robustness via LFT helpers.
+- DSF prototype workflow for MIMO transfer factorization and edge-probability diagnostics (prototype only, not theorem-backed).
 
-- **Bayesian estimator (`BayesianARX`)**
-  - Uses a Gaussian prior on parameters and Gaussian likelihood with known noise variance `sigma2`.
-  - Computes closed-form posterior mean and covariance.
-  - Exposes posterior-mean prediction and full posterior predictive mean/variance.
-  - Provides predictive density evaluation over a grid.
-  - Supports parameter sampling and predictive simulation from posterior draws.
-  - Supports multi-step trajectory rollout under parameter uncertainty.
+See `docs/roadmap_status.md` for module-level status, tests, demos, and next steps.
 
-- **Simulation utility (`simulate_arx`)**
-  - Simulates SISO ARX data from known coefficients and optional Gaussian process noise.
+## Remaining gaps (current)
 
-- **Example script (`examples/demo_arx.py`)**
-  - End-to-end workflow: simulate data, fit LS and Bayesian ARX, compare predictions,
-    and visualize predictive density + trajectory uncertainty bands.
-
-- **Tests**
-  - Unit tests now cover ARX fitting, analysis/control utilities, and DSF prototype behavior on a 2x2 sparse synthetic network.
-
-### Packaging and usability status
-
-- Packaged with setuptools and editable-install friendly (`pip install -e .`).
-- Public API exports are minimal and clear in `bayes_sysid.__init__`.
-- Scope is intentionally educational and compact, not yet production-oriented.
-
-## Gaps and limitations
-
-1. **Noise model is fixed**: `sigma2` must be known a priori.
-2. **Only SISO ARX**: no multi-input/multi-output support.
-3. **No model order selection**: users must manually pick `na`, `nb`.
-4. **No online/sequential updates**: fitting is batch-only.
-5. **Limited diagnostics**: no residual analysis, uncertainty calibration checks, or fit metrics.
-6. **No constrained/stability-aware priors**.
-7. **Minimal test coverage** beyond basic sanity checks.
+1. **DSF identifiability theory gap**: current DSF pipeline is useful for exploration but does not provide theorem-backed guarantees.
+2. **Robustness theory gap**: current robust outputs are classical/empirical margins and structured small-gain surrogates, not full structured singular value (μ) analysis.
+3. **Benchmark depth gap**: coverage is broad but still mostly synthetic and pedagogical; broader benchmark suites are needed.
+4. **Experiment design gap**: more guidance is needed for MIMO excitation design under noisy/partial observability.
 
 ## Expansion roadmap
 
-### Phase 1: Reliability and DX (quick wins)
+### Phase 1: Hardening and reproducibility
 
-- Add richer tests:
-  - edge-case validation (invalid lags, mismatched lengths, insufficient history),
-  - posterior consistency checks against analytical identities,
-  - deterministic behavior checks for random seeds.
-- Add metrics utilities:
-  - one-step RMSE/MAE/NLL,
-  - calibration diagnostics for predictive intervals.
-- Improve docs:
-  - API docs with shape conventions,
-  - “input/output alignment” guide to avoid off-by-lag mistakes.
+- Expand benchmark datasets and scripted experiment reports.
+- Add richer CI checks for docs/code consistency and artifact indexing.
+- Add numerical conditioning diagnostics in realization/Gramian routines.
 
-### Phase 2: Bayesian model completeness
+### Phase 2: Theorem-backed structure learning
 
-- Add **unknown noise variance** with conjugate prior:
-  - Normal-Inverse-Gamma posterior,
-  - Student-t posterior predictive.
-- Add prior configuration helpers:
-  - isotropic ridge prior,
-  - diagonal AR-vs-input shrinkage,
-  - prior scaling by regressor variance.
+- Lift DSF prototype into theorem-backed identifiability workflow.
+- Add experiment-design constraints (excitation richness, horizon sizing, sensor placement sensitivity).
 
-### Phase 3: Modeling breadth
+### Phase 3: Robust-control depth
 
-- Add exogenous terms and variants:
-  - ARMAX-like structure (with caution about latent noise dynamics),
-  - optional bias/intercept term,
-  - automatic feature standardization.
-- Add **MIMO support**:
-  - block regressors,
-  - independent-output and coupled-output posterior options.
+- Add optional integration path for full μ-analysis toolchains.
+- Separate “surrogate robust indicators” vs “certified robust guarantees” in reporting templates.
 
-### Phase 4: Selection and automation
+### Phase 4: Scaled Bayesian controls workflow
 
-- Implement model order selection utilities:
-  - grid search over `(na, nb)`,
-  - criteria: marginal likelihood (Bayesian), AIC/BIC, validation NLL.
-- Add cross-validation helpers for time series (rolling-origin splits).
+- Add larger MIMO examples and partial-observability studies.
+- Add posterior-risk summaries across LQR/LQG + robustness metrics in one report artifact.
 
-### Phase 5: Advanced uncertainty and deployment
+## Immediate next tasks
 
-- Online/sequential Bayesian updates for streaming identification.
-- Constrained priors for stability preferences.
-- Optional robust likelihoods (e.g., Student-t noise) for outlier resilience.
-- Export/persistence helpers and reproducible experiment configs.
-
-## Recommended immediate next tasks
-
-1. Add theorem-backed DSF identifiability analysis for MIMO settings (current DSF is prototype-only).
-2. Add a dedicated Grammians/HSV module with posterior summaries.
-3. Extend DSF experiments to partially observed/noisy settings and benchmark recovery rates.
-4. Add LQR/LQG synthesis with posterior risk summaries.
-
-These tasks preserve the current pedagogical style while expanding toward publishable controls contributions.
+1. Deliver theorem-backed DSF identifiability tests and documentation.
+2. Add automated summary report combining stability probability, Gramian/HSV spread, and closed-loop risk.
+3. Expand examples to include noisy partially observed MIMO networks.
+4. Add optional interoperability notes for external μ-analysis tools while keeping internal terminology precise.
