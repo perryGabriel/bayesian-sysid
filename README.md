@@ -2,17 +2,13 @@
 
 A research-oriented Python project for **Bayesian linear system identification** with
 **ARX (AutoRegressive with eXogenous input)** models, plus uncertainty-aware tools
-for stability and closed-loop control analysis.
-
-This repository is designed for class projects and rapid experimentation: it provides
-simple APIs, interpretable Bayesian math, and reproducible demos that visualize what
-changes when we propagate posterior uncertainty into downstream control tasks.
+for stability, realizations, observers, and closed-loop analysis.
 
 ---
 
 ### YouTube Presentation
 
-Click [here](https://youtu.be/ctGgKKvs0lw) to view an presentation of the results of this project.
+Click [here](https://youtu.be/ctGgKKvs0lw) to view a presentation of this project.
 
 ## 1) Project objective
 
@@ -23,7 +19,8 @@ least squares, Bayesian ARX gives a posterior distribution over parameters, enab
 - predictive intervals (not just point predictions),
 - uncertainty-aware stability analysis,
 - posterior-sampled frequency-response envelopes,
-- Monte Carlo closed-loop performance and robustness checks.
+- Monte Carlo closed-loop performance and robustness checks,
+- Bayesian state-space realization and observer studies from posterior samples.
 
 ---
 
@@ -62,17 +59,42 @@ y_*\mid\mathcal{D},\phi_* \sim
 \mathcal{N}\left(\phi_*^\top\mu_N,\,\phi_*^\top\Sigma_N\phi_*+\sigma^2\right).
 $$
 
-Predictive variance combines:
-
-- observation noise: $\sigma^2$,
-- parameter uncertainty: $\phi_*^\top\Sigma_N\phi_*$.
-
 The repository also includes an **unknown-noise** Bayesian ARX variant with a
 Student-t predictive distribution.
 
 ---
 
-## 3) Key features
+## 3) Bayesian state-space and Bayesian Gramians
+
+For each posterior parameter sample $\theta^{(s)}$, we construct a realization
+$(A^{(s)}, B^{(s)}, C^{(s)}, D^{(s)})$ via companion-form ARX realization.
+This induces a **posterior distribution over state-space models**, i.e. a Bayesian
+state-space family.
+
+For stable sampled realizations, we compute discrete-time Gramians
+
+$$
+W_c^{(s)} = A^{(s)}W_c^{(s)}A^{(s)\top} + B^{(s)}B^{(s)\top},
+$$
+$$
+W_o^{(s)} = A^{(s)\top}W_o^{(s)}A^{(s)} + C^{(s)\top}C^{(s)}.
+$$
+
+Across posterior samples, the set
+$\{W_c^{(s)}, W_o^{(s)}\}_{s=1}^S$ is a **Bayesian Gramian ensemble**. In this
+project, “Bayesian Gramians” means these Gramians are random objects induced by
+posterior uncertainty in ARX parameters.
+
+Observer tooling now includes:
+
+- `observability_matrix(A, C, horizon=None)`
+- `is_observable(A, C, tol=1e-9)`
+- `design_luenberger_gain(A, C, desired_poles)`
+- `run_kalman_filter(A, B, C, Q, R, u, y, x0=None, P0=None)`
+
+---
+
+## 4) Key features
 
 - Bayesian and least-squares ARX fitting APIs.
 - Known-noise and unknown-noise Bayesian variants.
@@ -80,6 +102,8 @@ Student-t predictive distribution.
 - Rolling-origin ARX order selection.
 - Posterior-sampled stability probability and pole-cloud analysis.
 - Frequency-response sampling and uncertainty envelopes.
+- State-space realization and minimal realization helpers.
+- Observer baselines: observability, Luenberger gain, and Kalman filtering.
 - Closed-loop Monte Carlo simulation under posterior parameter samples.
 - Nominal and empirical (posterior) gain/phase margin summaries.
 
@@ -90,42 +114,25 @@ Stability conventions:
 
 ---
 
-## 4) Repository structure
+## 5) Repository structure
 
 ```text
 .
 ├── README.md
 ├── pyproject.toml
 ├── docs/
-│   ├── controls_addons_research_plan.md
-│   ├── repo_audit_and_expansion_plan.md
-│   └── final_report.md
 ├── examples/
 │   ├── demo_arx.py
 │   ├── demo_stability_and_robustness.py
 │   ├── demo_posterior_nyquist_band.py
 │   ├── demo_uncertainty_insufficient_information.py
+│   ├── demo_observer_and_bayesian_gramians.py
 │   └── artifacts/
-│       ├── posterior_trajectory_band.png
-│       ├── predictive_density_annotated.png
-│       ├── stability_pole_cloud.png
-│       ├── frequency_response_envelope.png
-│       └── closed_loop_monte_carlo.png
-│       ├── closed_loop_monte_carlo.png
-│       └── nyquist_posterior_band.png
 ├── src/bayes_sysid/
-│   ├── __init__.py
-│   ├── arx.py
-│   ├── models.py
-│   ├── regression.py
-│   ├── priors.py
-│   ├── selection.py
-│   ├── metrics.py
-│   ├── simulate.py
 │   ├── analysis/
-│   │   ├── stability.py
-│   │   └── frequency_response.py
 │   └── control/
+│       ├── realization.py
+│       ├── observer.py
 │       ├── closed_loop.py
 │       ├── margins.py
 │       ├── lft.py
@@ -135,28 +142,26 @@ Stability conventions:
 
 ---
 
-## 5) Installation
+## 6) Installation
 
 From repository root:
-@@ -150,50 +152,51 @@ pip install numpy scipy matplotlib pytest
+
+```bash
+pip install -e .
+pip install numpy scipy matplotlib pytest
+```
 
 ---
 
-## 6) Quick start
+## 7) Quick start
 
 ### Minimal API example
 
 ```python
 from bayes_sysid import BayesianARX
 
-# Build + fit
-model = BayesianARX(na=2, nb=2, sigma2=0.05)
-model.fit(y, u)
-
-# One-step predictive distribution
+model = BayesianARX(na=2, nb=2, sigma2=0.05).fit(y, u)
 mean, var = model.predict_next_distribution(y_hist, u_hist)
-print("predictive mean:", mean)
-print("predictive variance:", var)
 ```
 
 ### Run demos
@@ -166,11 +171,14 @@ python examples/demo_arx.py
 python examples/demo_stability_and_robustness.py
 python examples/demo_posterior_nyquist_band.py
 python examples/demo_uncertainty_insufficient_information.py
+python examples/demo_observer_and_bayesian_gramians.py
 ```
+
+The new observer/Gramian demo writes figures and tables to `examples/artifacts/`.
 
 ---
 
-## 7) Validation and tests
+## 8) Validation and tests
 
 Run unit tests:
 
@@ -179,19 +187,8 @@ pytest -q
 ```
 
 The test suite covers ARX fitting behavior, predictive utilities, API structure,
-stability/frequency-response analysis, and closed-loop/robustness helpers.
-
----
-
-## 8) Final report for course rubric
-
-A course-style final report aligned with the grading rubric (background,
-Bayesian-method details, results interpretation, and clarity) is provided at:
-
-- `docs/final_report.md`
-
-It is formatted for straightforward conversion to PDF (e.g., Pandoc) using 12pt
-font, 1-inch margins, single spacing, and target length 4–5 pages.
+stability/frequency-response analysis, realizations, observer helpers, and
+closed-loop/robustness utilities.
 
 ---
 
@@ -216,7 +213,6 @@ If this repository is useful in your work, you can cite:
 Current scope is SISO linear ARX with uncertainty propagation into selected control
 analyses. Natural extensions:
 
-- explicit state-space realization and observer design,
-- MIMO identification,
-- richer structured uncertainty and robust synthesis,
-- online/sequential Bayesian updates for adaptive control loops.
+- MIMO identification and realization pipelines,
+- robust synthesis with posterior-aware uncertainty blocks,
+- online/sequential Bayesian updates for adaptive loops.
