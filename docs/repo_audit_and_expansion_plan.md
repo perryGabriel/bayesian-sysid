@@ -31,7 +31,7 @@ single-input single-output (SISO) ARX models.
     and visualize predictive density + trajectory uncertainty bands.
 
 - **Tests**
-  - Smoke tests verify model fit/output shapes and positive predictive variance.
+  - Unit tests now cover ARX fitting, analysis/control utilities, and DSF prototype behavior on a 2x2 sparse synthetic network.
 
 ### Packaging and usability status
 
@@ -100,9 +100,9 @@ single-input single-output (SISO) ARX models.
 
 ## Recommended immediate next tasks
 
-1. Implement a test expansion (Phase 1) and target ~90% line coverage for `arx.py`.
-2. Add a `metrics.py` module and integrate it into `examples/demo_arx.py` output.
-3. Add Normal-Inverse-Gamma support behind a new class (`BayesianARXUnknownNoise`).
-4. Add an order-selection utility with rolling validation.
+1. Add theorem-backed DSF identifiability analysis for MIMO settings (current DSF is prototype-only).
+2. Add a dedicated Grammians/HSV module with posterior summaries.
+3. Extend DSF experiments to partially observed/noisy settings and benchmark recovery rates.
+4. Add LQR/LQG synthesis with posterior risk summaries.
 
-These four tasks preserve the current pedagogical style while materially improving practical utility.
+These tasks preserve the current pedagogical style while expanding toward publishable controls contributions.

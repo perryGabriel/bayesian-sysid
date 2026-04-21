@@ -1,4 +1,11 @@
 from .closed_loop import monte_carlo_closed_loop_paths, simulate_closed_loop_arx
+from .dsf import (
+    dsf_from_transfer_matrix,
+    posterior_edge_probability,
+    transfer_matrix_from_mimo_arx,
+    validate_excitation_richness,
+    validate_identifiability_assumptions,
+)
 from .lft import (
     DeltaBlock,
     RobustStabilityResult,
@@ -35,4 +42,9 @@ __all__ = [
     "TuningReport",
     "estimate_closed_loop_stability_probability",
     "tune_controller_probabilistic",
+    "transfer_matrix_from_mimo_arx",
+    "dsf_from_transfer_matrix",
+    "posterior_edge_probability",
+    "validate_identifiability_assumptions",
+    "validate_excitation_richness",
 ]
