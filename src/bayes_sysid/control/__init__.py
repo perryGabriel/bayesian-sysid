@@ -14,6 +14,8 @@ from .lft import (
     posterior_robust_stability_confidence,
     upper_lft_siso,
 )
+from .lqg import lqg_controller, sampled_bayesian_lqg_summary, sampled_bayesian_lqr_summary, steady_state_kalman_gain
+from .lqr import closed_loop_poles, lqr_gain_from_realization, solve_discrete_lqr
 from .margins import MarginReport, classical_margins_from_open_loop, empirical_margin_report
 from .observer import design_luenberger_gain, is_observable, observability_matrix, run_kalman_filter
 from .realization import arx_to_state_space, minimal_realization, validate_realization_shapes
@@ -47,4 +49,11 @@ __all__ = [
     "posterior_edge_probability",
     "validate_identifiability_assumptions",
     "validate_excitation_richness",
+    "solve_discrete_lqr",
+    "lqr_gain_from_realization",
+    "closed_loop_poles",
+    "steady_state_kalman_gain",
+    "lqg_controller",
+    "sampled_bayesian_lqr_summary",
+    "sampled_bayesian_lqg_summary",
 ]
