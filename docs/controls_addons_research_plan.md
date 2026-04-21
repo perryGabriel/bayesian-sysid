@@ -31,7 +31,7 @@ Not implemented yet (important gap for next phases):
 - ARX/state-space bridge utilities (realization, minimality, and model-order cleanup).
 - Controllability/observability Grammians and Hankel singular value analysis.
 - LQR/LQG synthesis and observer/Kalman design tools built on posterior samples.
-- DSF reconstruction and MIMO identifiability diagnostics.
+- Full DSF theorem-backed reconstruction and MIMO identifiability guarantees (prototype utilities now exist).
 
 ---
 
@@ -99,24 +99,6 @@ However, you can derive realizations from transfer models (ARX -> realization) w
 - Add discrete-time Riccati solver wrappers (`scipy.linalg.solve_discrete_are`).
 - For Bayesian version: sample state-space models from posterior ARX coefficients and produce
   distribution over gains and closed-loop poles.
-
-### Codex prompt (ready to implement after state-space bridge)
-
-```text
-Implement Sprint 3, task 1: add a deterministic ARX->state-space realization module for SISO models.
-Requirements:
-- New module: src/bayes_sysid/control/realization.py
-- API:
-  - arx_to_state_space(a: np.ndarray, b: np.ndarray, dt: float | None = None) -> tuple[A,B,C,D]
-  - minimal_realization(A,B,C,D, tol=1e-9) -> tuple[A,B,C,D, kept_states]
-  - validate_realization_shapes(...)
-- Use controllable companion-form realization for proper ARX transfer functions.
-- Add tests:
-  - realization reproduces ARX transfer response on dense frequency grid;
-  - controllability rank is full before reduction for canonical examples;
-  - minimal_realization removes uncontrollable/unobservable modes in synthetic case.
-- Add docstrings and one usage snippet in docs/controls_addons_research_plan.md.
-```
 
 ### Usage snippet (Sprint 3 task 1)
 
@@ -188,23 +170,6 @@ but that is not a full observer design framework.
 - For stochastic setting: process/measurement covariance estimation and Kalman recursion.
 - Compare certainty-equivalent observer/controller to posterior-sampled alternatives.
 
-### Codex prompt (ready to implement in Sprint 3 after realization utilities land)
-
-```text
-Implement observer baseline tooling in src/bayes_sysid/control/observer.py.
-Requirements:
-- APIs:
-  - observability_matrix(A, C, horizon=None)
-  - is_observable(A, C, tol=1e-9)
-  - design_luenberger_gain(A, C, desired_poles)
-  - run_kalman_filter(A, B, C, Q, R, u, y, x0=None, P0=None)
-- Add tests for:
-  - observable/unobservable toy systems;
-  - pole placement sanity (eigenvalues(A - L*C));
-  - Kalman state estimate RMSE improvement vs open-loop predictor on noisy simulation.
-- Keep interfaces NumPy-first and consistent with existing control modules.
-```
-
 ### Novel angle
 
 - Bayesian observer gain distributions from posterior-identified models.
@@ -231,19 +196,13 @@ For meaningful DSF reconstruction, at least MIMO ARX/ARMAX-style identification 
 - Implement DSF factorization/reconstruction constraints from measured outputs.
 - Add identifiability checks and experiment-design requirements.
 
-### Codex prompt (ready to implement in Sprint 4 once MIMO backbone exists)
+### Current prototype status
 
-```text
-Implement initial DSF scaffold under src/bayes_sysid/control/dsf.py.
-Requirements:
-- Provide placeholders + working utilities for:
-  - transfer_matrix_from_mimo_arx(...)
-  - dsf_from_transfer_matrix(G, method="stable_factorization")
-  - posterior_edge_probability(dsf_samples, threshold)
-- Add validation helpers for identifiability assumptions and excitation richness.
-- Add tests with a 2x2 synthetic network where ground-truth edge sparsity is known.
-- Document current limitations clearly (prototype; no full identifiability theorem yet).
-```
+- Initial scaffold now exists under `src/bayes_sysid/control/dsf.py`.
+- Implemented utilities: transfer-matrix construction from MIMO ARX lag tensors,
+  heuristic DSF factorization, posterior edge probabilities, and validation helpers
+  for identifiability assumptions + excitation richness.
+- Current limitation: this is a prototype and **not** a theorem-backed identifiability result.
 
 ---
 
@@ -256,18 +215,10 @@ requires an explicit realization pipeline first (ARX -> state-space).
 
 ### Minimal next steps required
 
-- Add a stable discrete-time Lyapunov solver wrapper for:
-  - controllability Grammian $W_c$ from $A W_c A^\top - W_c + B B^\top = 0$,
-  - observability Grammian $W_o$ from $A^\top W_o A - W_o + C^\top C = 0$.
-- Add rank/conditioning diagnostics:
-  - numerical controllability/observability ranks,
-  - condition numbers and near-uncontrollable mode flags.
-- Add Hankel singular value computation:
-  - compute singular values of $W_c W_o$ (or balanced factor forms),
-  - expose cumulative-energy truncation suggestions for reduced-order models.
-- Add posterior uncertainty workflow:
-  - sample ARX/posterior models -> realizations -> Grammians/HSVs,
-  - summarize distribution of HSV spectra and probability that each mode is important.
+- Add a stable discrete-time Lyapunov solver wrapper for controllability and observability Grammians.
+- Add rank/conditioning diagnostics and near-uncontrollable mode flags.
+- Add Hankel singular value computation and cumulative-energy truncation suggestions.
+- Add posterior uncertainty workflow over HSV spectra from posterior model samples.
 
 ### Novel angle
 
@@ -278,35 +229,6 @@ requires an explicit realization pipeline first (ARX -> state-space).
 
 - **ACC/CDC** model reduction + robust/adaptive sessions.
 - **IFAC SYSID** for identification-to-reduction pipelines with uncertainty quantification.
-
-### Codex prompt (ready to implement in Sprint 3 after realization utilities land)
-
-```text
-Implement Grammians + Hankel singular values module: src/bayes_sysid/control/grammians.py
-Requirements:
-- APIs:
-  - controllability_grammian(A, B)
-  - observability_grammian(A, C)
-  - hankel_singular_values(A, B, C, sort_desc=True)
-  - balanced_truncation_energy(hsv, energy=0.99) -> retained_order
-  - posterior_hsv_summary(arx_posterior_samples, na, nb, dt=None)
-- Use scipy.linalg.solve_discrete_lyapunov where appropriate.
-- Add robust input validation and numerical warnings for unstable A.
-- Tests:
-  - known stable system with analytic/benchmark values;
-  - invariance of HSVs to similarity transform (within tolerance);
-  - monotone cumulative-energy behavior.
-- Add example script showing posterior HSV bands and suggested reduced orders.
-```
-
-### Novel angle
-
-- Bayesian DSF with uncertainty quantification over edges/interaction strengths.
-- Closed-loop DSF reconstruction under realistic experimental constraints.
-
-### Likely conference fit
-
-- **IFAC SYSID**, **CDC networks**, **NetControl**-adjacent communities.
 
 ---
 
@@ -369,25 +291,15 @@ These produce controls-relevant figures quickly while postponing full state-spac
 
 ### Sprint 3 (state-space bridge)
 
-- [ ] Add ARX -> state-space realization.
-- [ ] Add LQR controller synthesis and observer/Kalman baseline tools.
-- [ ] Add controllability/observability Grammians and Hankel singular value analysis.
+- [x] Add ARX -> state-space realization.
+- [x] Add observer/Kalman baseline tools (LQR synthesis still pending).
+- [ ] Add a dedicated controllability/observability Grammians and Hankel singular value module.
 - [ ] Add Bayesian gain distribution reporting.
-
-#### Codex prompts for Sprint 3
-
-- **Prompt A (state-space bridge):** use the "LQR/LQG controller construction" prompt in Section 2.
-- **Prompt B (observer tooling):** use the "Kalman filtering or Luenberger observer design" prompt in Section 4.
-- **Prompt C (Grammians/HSV):** use the Section 6 prompt.
 
 ### Sprint 4 (advanced research)
 
-- [ ] Add MIMO identification and DSF reconstruction prototypes.
-- [ ] Add identifiability diagnostics and experiment-design module.
-
-#### Codex prompts for Sprint 4
-
-- **Prompt D (DSF prototype):** use the Section 5 prompt.
+- [x] Add DSF reconstruction prototype utilities and demonstrations for 2x2 synthetic networks.
+- [x] Add initial identifiability and excitation-richness diagnostics (heuristic checks).
 
 ---
 

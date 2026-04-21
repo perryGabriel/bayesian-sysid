@@ -106,6 +106,7 @@ Observer tooling now includes:
 - Observer baselines: observability, Luenberger gain, and Kalman filtering.
 - Closed-loop Monte Carlo simulation under posterior parameter samples.
 - Nominal and empirical (posterior) gain/phase margin summaries.
+- Prototype DSF utilities for 2x2 MIMO network structure exploration (edge probabilities + diagnostics).
 
 Stability conventions:
 
@@ -136,7 +137,8 @@ Stability conventions:
 │       ├── closed_loop.py
 │       ├── margins.py
 │       ├── lft.py
-│       └── tuning.py
+│       ├── tuning.py
+│       └── dsf.py
 └── tests/
 ```
 
@@ -172,6 +174,7 @@ python examples/demo_stability_and_robustness.py
 python examples/demo_posterior_nyquist_band.py
 python examples/demo_uncertainty_insufficient_information.py
 python examples/demo_observer_and_bayesian_gramians.py
+python examples/demo_dsf_scaffold.py
 ```
 
 The new observer/Gramian demo writes figures and tables to `examples/artifacts/`.
@@ -210,9 +213,9 @@ If this repository is useful in your work, you can cite:
 
 ## 10) Limitations and next steps
 
-Current scope is SISO linear ARX with uncertainty propagation into selected control
-analyses. Natural extensions:
+Current scope is still primarily SISO linear ARX with uncertainty propagation into
+selected control analyses. Natural extensions:
 
-- MIMO identification and realization pipelines,
+- theorem-backed MIMO/DSF identifiability guarantees (current DSF scaffold is prototype-only),
 - robust synthesis with posterior-aware uncertainty blocks,
 - online/sequential Bayesian updates for adaptive loops.

@@ -1,0 +1,18 @@
+Identifiability checks:
+  is_square: True
+  full_rank_all_frequencies: True
+  diagonal_nonzero_all_frequencies: True
+  passes: True
+  rank_tol: 1e-08
+  diagonal_tol: 1e-08
+
+Excitation richness checks:
+  n_samples: 500
+  n_inputs: 2
+  rank: 2
+  full_rank: True
+  condition_number: 1.203345817670602
+  well_conditioned: True
+  passes: True
+  rank_tol: 1e-08
+  condition_number_max: 1000000.0
