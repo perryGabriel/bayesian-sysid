@@ -120,6 +120,143 @@ def validate_excitation_richness(
     condition_number_max: float = 1e6,
 ) -> dict[str, object]:
     """Check whether MIMO excitation appears informative enough for DSF experiments."""
+    return excitation_richness_score(
+        u,
+        rank_tol=rank_tol,
+        condition_number_max=condition_number_max,
+    )
+
+
+def heuristic_identifiability_screening(
+    G: Array,
+    rank_tol: float = 1e-8,
+    diagonal_tol: float = 1e-8,
+) -> dict[str, object]:
+    """Heuristic DSF screen (not a theorem-backed guarantee)."""
+    return validate_identifiability_assumptions(
+        G,
+        rank_tol=rank_tol,
+        diagonal_tol=diagonal_tol,
+    )
+
+
+def evaluate_transfer_rank_identifiability(
+    G: Array,
+    rank_tol: float = 1e-8,
+) -> dict[str, object]:
+    """Evaluate frequency-wise rank conditions for transfer-map identifiability."""
+    G3 = _validate_transfer_matrix_array(G)
+    n_freq, p, m = G3.shape
+    min_singular_values = np.empty(n_freq, dtype=float)
+    rank_per_freq = np.empty(n_freq, dtype=int)
+
+    for k, Gk in enumerate(G3):
+        svals = np.linalg.svd(Gk, compute_uv=False)
+        min_singular_values[k] = float(svals[-1])
+        rank_per_freq[k] = int(np.sum(svals > rank_tol))
+
+    deficient = np.flatnonzero(rank_per_freq < min(p, m))
+    return {
+        "condition_name": "transfer_rank",
+        "n_freq": n_freq,
+        "shape": (p, m),
+        "rank_tol": rank_tol,
+        "rank_per_frequency": rank_per_freq,
+        "min_singular_values": min_singular_values,
+        "rank_deficient_indices": deficient,
+        "satisfied": bool(deficient.size == 0),
+    }
+
+
+def evaluate_persistence_of_excitation(
+    u: Array,
+    max_lag: int = 5,
+    rank_tol: float = 1e-8,
+    condition_number_max: float = 1e6,
+) -> dict[str, object]:
+    """Evaluate persistence-of-excitation via block-Hankel embedding rank."""
+    u = np.asarray(u, dtype=float)
+    if u.ndim != 2:
+        raise ValueError("u must have shape (n_samples, n_inputs).")
+    n_samples, n_inputs = u.shape
+    if n_samples <= max_lag:
+        raise ValueError("u must have more rows than max_lag.")
+
+    rows = n_samples - max_lag + 1
+    hankel = np.zeros((rows, n_inputs * max_lag), dtype=float)
+    for lag in range(max_lag):
+        hankel[:, lag * n_inputs : (lag + 1) * n_inputs] = u[lag : lag + rows]
+
+    centered = hankel - hankel.mean(axis=0, keepdims=True)
+    gram = (centered.T @ centered) / max(rows - 1, 1)
+    svals = np.linalg.svd(gram, compute_uv=False)
+    rank = int(np.sum(svals > rank_tol))
+    target_rank = n_inputs * max_lag
+    condition_number = np.inf if svals[-1] <= rank_tol else float(svals[0] / svals[-1])
+    return {
+        "n_samples": n_samples,
+        "n_inputs": n_inputs,
+        "max_lag": max_lag,
+        "hankel_shape": hankel.shape,
+        "rank": rank,
+        "target_rank": target_rank,
+        "full_rank": rank == target_rank,
+        "condition_number": condition_number,
+        "well_conditioned": condition_number <= condition_number_max,
+        "passes": bool(rank == target_rank and condition_number <= condition_number_max),
+        "rank_tol": rank_tol,
+        "condition_number_max": condition_number_max,
+        "singular_values": svals,
+    }
+
+
+def evaluate_identifiability_conditions(
+    G: Array,
+    u: Array,
+    max_lag: int = 5,
+    rank_tol: float = 1e-8,
+    condition_number_max: float = 1e6,
+) -> dict[str, object]:
+    """Guarantee-oriented identifiability evaluators with structured diagnostics."""
+    rank_diag = evaluate_transfer_rank_identifiability(G, rank_tol=rank_tol)
+    pe_diag = evaluate_persistence_of_excitation(
+        u,
+        max_lag=max_lag,
+        rank_tol=rank_tol,
+        condition_number_max=condition_number_max,
+    )
+    return {
+        "rank_condition": rank_diag,
+        "persistence_of_excitation": pe_diag,
+        "all_conditions_satisfied": bool(rank_diag["satisfied"] and pe_diag["passes"]),
+    }
+
+
+def minimum_horizon_guidance(
+    n_inputs: int,
+    model_order: int,
+    safety_factor: float = 10.0,
+) -> dict[str, object]:
+    """Recommend minimum data horizon for DSF/ARX-style experiment design."""
+    if n_inputs < 1 or model_order < 1:
+        raise ValueError("n_inputs and model_order must be positive.")
+    min_horizon_rank = n_inputs * model_order + 1
+    recommended_horizon = int(np.ceil(safety_factor * min_horizon_rank))
+    return {
+        "n_inputs": n_inputs,
+        "model_order": model_order,
+        "minimum_rank_horizon": min_horizon_rank,
+        "recommended_horizon": recommended_horizon,
+        "safety_factor": safety_factor,
+    }
+
+
+def excitation_richness_score(
+    u: Array,
+    rank_tol: float = 1e-8,
+    condition_number_max: float = 1e6,
+) -> dict[str, object]:
+    """Score excitation richness with rank, conditioning, and balance breakdown."""
     u = np.asarray(u, dtype=float)
     if u.ndim != 2:
         raise ValueError("u must have shape (n_samples, n_inputs).")
@@ -130,12 +267,20 @@ def validate_excitation_richness(
     uc = u - u.mean(axis=0, keepdims=True)
     gram = (uc.T @ uc) / max(n_samples - 1, 1)
     svals = np.linalg.svd(gram, compute_uv=False)
-
     rank = int(np.sum(svals > rank_tol))
-    if svals[-1] <= rank_tol:
-        condition_number = np.inf
-    else:
-        condition_number = float(svals[0] / svals[-1])
+    condition_number = np.inf if svals[-1] <= rank_tol else float(svals[0] / svals[-1])
+    variances = np.diag(gram)
+    positive_variances = variances[variances > rank_tol]
+    variance_balance = (
+        0.0
+        if positive_variances.size == 0
+        else float(np.min(positive_variances) / np.max(positive_variances))
+    )
+    conditioning_score = 0.0 if not np.isfinite(condition_number) else float(
+        min(1.0, condition_number_max / max(condition_number, 1.0))
+    )
+    rank_score = float(rank / n_inputs)
+    total_score = float((rank_score + conditioning_score + variance_balance) / 3.0)
 
     return {
         "n_samples": n_samples,
@@ -144,10 +289,41 @@ def validate_excitation_richness(
         "full_rank": rank == n_inputs,
         "condition_number": condition_number,
         "well_conditioned": condition_number <= condition_number_max,
+        "rank_score": rank_score,
+        "conditioning_score": conditioning_score,
+        "variance_balance_score": variance_balance,
+        "total_score": total_score,
         "passes": bool(rank == n_inputs and condition_number <= condition_number_max),
         "rank_tol": rank_tol,
         "condition_number_max": condition_number_max,
     }
+
+
+def identifiability_warning_flags(
+    identifiability: dict[str, object],
+    edge_probabilities: Array | None = None,
+    high_probability_threshold: float = 0.9,
+) -> list[str]:
+    """Emit warning flags for unidentifiable or weakly identified patterns."""
+    warnings: list[str] = []
+    rank_condition = identifiability.get("rank_condition", {})
+    pe = identifiability.get("persistence_of_excitation", {})
+
+    deficient = np.asarray(rank_condition.get("rank_deficient_indices", np.array([], dtype=int)))
+    if deficient.size > 0:
+        warnings.append("transfer_rank_deficient_frequencies")
+    if not bool(pe.get("passes", False)):
+        warnings.append("insufficient_persistence_of_excitation")
+
+    if edge_probabilities is not None:
+        probs = np.asarray(edge_probabilities, dtype=float)
+        if probs.ndim != 2 or probs.shape[0] != probs.shape[1]:
+            raise ValueError("edge_probabilities must have shape (p,p).")
+        for i in range(probs.shape[0]):
+            for j in range(i + 1, probs.shape[1]):
+                if probs[i, j] >= high_probability_threshold and probs[j, i] >= high_probability_threshold:
+                    warnings.append(f"bidirectional_high_confidence_edge_pair:{i}-{j}")
+    return warnings
 
 
 def dsf_from_transfer_matrix(
@@ -200,8 +376,21 @@ def posterior_edge_probability(dsf_samples: Array, threshold: float) -> Array:
     threshold:
         Edge is counted as present if its maximum magnitude exceeds this value.
     """
+    return posterior_edge_confidence_summary(dsf_samples, threshold)["posterior_probability"]
+
+
+def posterior_edge_confidence_summary(
+    dsf_samples: Array,
+    threshold: float,
+    credible_level: float = 0.95,
+    calibration_truth: Array | None = None,
+    calibration_bins: int = 10,
+) -> dict[str, object]:
+    """Posterior edge summary with uncertainty and optional calibration metrics."""
     if threshold < 0:
         raise ValueError("threshold must be non-negative.")
+    if not (0.0 < credible_level < 1.0):
+        raise ValueError("credible_level must be in (0, 1).")
 
     samples = np.asarray(dsf_samples)
     if samples.ndim == 3:
@@ -212,7 +401,53 @@ def posterior_edge_probability(dsf_samples: Array, threshold: float) -> Array:
         raise ValueError("dsf_samples must have shape (n_samples,p,p) or (n_samples,n_freq,p,p).")
 
     edge_events = edge_mag > threshold
-    probs = edge_events.mean(axis=0)
+    n_samples = edge_events.shape[0]
+    probs = edge_events.mean(axis=0).astype(float)
+    z = 1.96 if credible_level >= 0.95 else 1.64
+    se = np.sqrt(np.maximum(probs * (1.0 - probs) / max(n_samples, 1), 0.0))
+    lower = np.clip(probs - z * se, 0.0, 1.0)
+    upper = np.clip(probs + z * se, 0.0, 1.0)
+
     if probs.shape[0] == probs.shape[1]:
         np.fill_diagonal(probs, 0.0)
-    return probs
+        np.fill_diagonal(lower, 0.0)
+        np.fill_diagonal(upper, 0.0)
+
+    summary: dict[str, object] = {
+        "n_samples": n_samples,
+        "threshold": threshold,
+        "credible_level": credible_level,
+        "posterior_probability": probs,
+        "credible_interval_lower": lower,
+        "credible_interval_upper": upper,
+        "uncertainty_std_error": se,
+    }
+
+    if calibration_truth is not None:
+        truth = np.asarray(calibration_truth).astype(bool)
+        if truth.shape != probs.shape:
+            raise ValueError("calibration_truth must have the same shape as posterior probabilities.")
+
+        flat_prob = probs.reshape(-1)
+        flat_truth = truth.reshape(-1).astype(float)
+        brier = float(np.mean((flat_prob - flat_truth) ** 2))
+
+        bin_edges = np.linspace(0.0, 1.0, calibration_bins + 1)
+        ece = 0.0
+        bin_stats = []
+        for i in range(calibration_bins):
+            lo, hi = bin_edges[i], bin_edges[i + 1]
+            if i < calibration_bins - 1:
+                mask = (flat_prob >= lo) & (flat_prob < hi)
+            else:
+                mask = (flat_prob >= lo) & (flat_prob <= hi)
+            if not np.any(mask):
+                continue
+            conf = float(np.mean(flat_prob[mask]))
+            acc = float(np.mean(flat_truth[mask]))
+            frac = float(np.mean(mask))
+            ece += abs(acc - conf) * frac
+            bin_stats.append({"bin": (float(lo), float(hi)), "confidence": conf, "accuracy": acc, "fraction": frac})
+
+        summary["calibration"] = {"brier_score": brier, "ece": float(ece), "bins": bin_stats}
+    return summary
