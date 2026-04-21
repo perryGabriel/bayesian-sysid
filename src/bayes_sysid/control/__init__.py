@@ -8,6 +8,7 @@ from .lft import (
     upper_lft_siso,
 )
 from .margins import MarginReport, classical_margins_from_open_loop, empirical_margin_report
+from .observer import design_luenberger_gain, is_observable, observability_matrix, run_kalman_filter
 from .realization import arx_to_state_space, minimal_realization, validate_realization_shapes
 from .tuning import StabilityEstimate, TuningReport, estimate_closed_loop_stability_probability, tune_controller_probabilistic
 
@@ -17,6 +18,10 @@ __all__ = [
     "MarginReport",
     "classical_margins_from_open_loop",
     "empirical_margin_report",
+    "observability_matrix",
+    "is_observable",
+    "design_luenberger_gain",
+    "run_kalman_filter",
     "arx_to_state_space",
     "minimal_realization",
     "validate_realization_shapes",
