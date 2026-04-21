@@ -219,3 +219,7 @@ selected control analyses. Natural extensions:
 - theorem-backed MIMO/DSF identifiability guarantees (current DSF scaffold is prototype-only),
 - robust synthesis with posterior-aware uncertainty blocks,
 - online/sequential Bayesian updates for adaptive loops.
+
+Current `control.lft` structured-uncertainty utilities are conservative sampled and
+small-gain-style surrogates; they should not be interpreted as exact structured
+singular value ($\mu$) analysis.
