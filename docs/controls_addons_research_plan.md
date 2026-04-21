@@ -118,6 +118,19 @@ Requirements:
 - Add docstrings and one usage snippet in docs/controls_addons_research_plan.md.
 ```
 
+### Usage snippet (Sprint 3 task 1)
+
+```python
+import numpy as np
+from bayes_sysid.control.realization import arx_to_state_space, minimal_realization
+
+a = np.array([0.45, -0.22, 0.06])
+b = np.array([0.12, 0.05, -0.01])
+
+A, B, C, D = arx_to_state_space(a, b, dt=0.1)
+A_min, B_min, C_min, D_min, kept = minimal_realization(A, B, C, D)
+```
+
 ### Novel angle
 
 - **Bayesian LQR under identification uncertainty** from ARX posterior samples.
